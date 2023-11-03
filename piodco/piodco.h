@@ -6,7 +6,6 @@
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 
-#include "../lib/pair.h"
 
 typedef struct
 {

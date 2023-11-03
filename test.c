@@ -26,12 +26,16 @@ int main()
     pio_sm_init(pio0, ism, offset, &smc);
     pio_sm_set_enabled(pio0, ism, true);
 
+    uint32_t pval[8];
+    memset(pval, 0x10, 4*8);
     for(;;)
     {
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
-        sleep_ms(1000);
+        dco_program_puts(pio0, ism, pval);
+
+        //sleep_ms(1000);
         gpio_put(PICO_DEFAULT_LED_PIN, 0);
-        sleep_ms(1000);
+        //sleep_ms(1000);
     }
 /*
     pcb->c = bitdco_program_get_default_config(offset);

@@ -32,7 +32,7 @@ pico_generate_pio_header(pico-DCO-test ${CMAKE_CURRENT_LIST_DIR}/piodco/dco.pio)
 target_sources(pico-DCO-test PUBLIC
 	      ${CMAKE_CURRENT_LIST_DIR}/lib/assert.c
         ${CMAKE_CURRENT_LIST_DIR}/piodco/piodco.c
-        ${CMAKE_CURRENT_LIST_DIR}/isr/isr.c
+        ${CMAKE_CURRENT_LIST_DIR}/dcoisr/dcoisr.c
         ${CMAKE_CURRENT_LIST_DIR}/test.c
         )
 

@@ -13,8 +13,6 @@ resolution can be easily increased to 23 millihertz, which is limited by
 Currently the upper freq. limit is about 9.4 MHz and it is achieved only using 
 pi pico overclocking to 270MHz.
 
-<img src="https://github.com/RPiks/pico-DCO/assets/47501785/0808bd73-f128-4edb-8cbb-86a81ee57e4f" width="512">
-
 # Phased locked loop in C
 The DCO uses phase locked loop principle programmed in C.
 
@@ -40,6 +38,8 @@ This is an experimental project of amateur radio class and it is devised by me o
 the free will base in order to experiment with QRP narrowband digital modes.
 I am licensed radio amateur who is extremely keen on experiments in the area
 of the digital modes on HF. My QRZ page is https://www.qrz.com/db/R2BDY
+
+![DSC_0269](https://github.com/RPiks/pico-DCO/assets/47501785/dfa3ae65-5ceb-46cb-a4ec-bf7b5defc5ec)
 
 # Feedback
 I gracefully appreciate any thoughts or comments on that matter.

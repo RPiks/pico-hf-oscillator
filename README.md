@@ -13,6 +13,8 @@ resolution can be easily increased to 23 millihertz, which is limited by
 Currently the upper freq. limit is about 9.4 MHz and it is achieved only using 
 pi pico overclocking to 270MHz.
 
+<img src="https://github.com/RPiks/pico-DCO/assets/47501785/04bcd948-8538-40db-a3d5-9ac6bb7be675" width="512">
+
 ![DSC_0269_512](https://github.com/RPiks/pico-DCO/assets/47501785/04bcd948-8538-40db-a3d5-9ac6bb7be675)
 
 # Phased locked loop in C

@@ -15,8 +15,6 @@ pi pico overclocking to 270MHz.
 
 <img src="https://github.com/RPiks/pico-DCO/assets/47501785/04bcd948-8538-40db-a3d5-9ac6bb7be675" width="512">
 
-![DSC_0269_512](https://github.com/RPiks/pico-DCO/assets/47501785/04bcd948-8538-40db-a3d5-9ac6bb7be675)
-
 # Phased locked loop in C
 The DCO uses phase locked loop principle programmed in C.
 

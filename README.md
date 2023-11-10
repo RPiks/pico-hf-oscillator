@@ -6,14 +6,14 @@ necessary build files to build a custom application which turns pico into
 precise PLL digital frequency oscillator of the portion of HF radio spectrum
 1.1 to 9.4MHz with high resolution.
 
-![DSC_0269](https://github.com/RPiks/pico-DCO/assets/47501785/91ee4c1a-43ed-4452-8606-9dd27183a044)
-
 # Precise frequency resolution
 The library provides 1 Hz frequency resolution in initialize function. This
 resolution can be easily increased to 23 millihertz, which is limited by
 24-bit register which is used in algorithm.
 Currently the upper freq. limit is about 9.4 MHz and it is achieved only using 
 pi pico overclocking to 270MHz.
+
+![DSC_0269_512](https://github.com/RPiks/pico-DCO/assets/47501785/04bcd948-8538-40db-a3d5-9ac6bb7be675)
 
 # Phased locked loop in C
 The DCO uses phase locked loop principle programmed in C.

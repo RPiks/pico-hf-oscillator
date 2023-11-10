@@ -19,8 +19,8 @@ The DCO uses phase locked loop principle programmed in C.
 # *NO* additional hardware
 The DCO provides the output signal on the GPIO pin. However if you want to
 transmit the signal, you should calculate and provide a lowpass filter of
-appropriate frequancy. Please also figure out whether you possess rights
-to emit radio frequency energy on desired frequancy.
+appropriate frequency. Please also figure out whether you possess rights
+to emit radio frequency energy on desired frequency.
 
 # Dual-core
 The DCO uses extensively the secodary core of the pico. The first one is for

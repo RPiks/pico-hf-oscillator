@@ -10,7 +10,7 @@ precise PLL digital frequency oscillator of the portion of HF radio spectrum
 The library provides 1 Hz frequency resolution in initialize function. This
 resolution can be easily increased to 23 millihertz, which is limited by
 24-bit register which is used in algorithm.
-Currently the upper freq. limit is about 9.8 MHz and it is achieved only using 
+Currently the upper freq. limit is about 9.4 MHz and it is achieved only using 
 pi pico overclocking to 270MHz.
 
 # Phased locked loop in C
@@ -20,17 +20,25 @@ The DCO uses phase locked loop principle programmed in C.
 The DCO does *NOT* use any floating point operations - all time-critical 
 instructions run in 1 CPU cycle.
 
+# Dual-core
+The DCO uses extensively the secodary core of the pico. The first one is for
+your iseas how to modulate the DCO to obtain desired signal.
+
 # Radio transmitters
 Owing to the meager frequency step, it is possible to use 3, 5, or 7th harmonics 
-of generated frequency. Such solution completely cover all HF and low band up to 
-65.8 MHz.
+of generated frequency. The practical resolution will be quite the same. Such 
+solution completely cover all HF and low band up to 65.8 MHz.
 
 # For what?
 This is an experimental project of amateur radio class and it is devised by me on 
 the free will base in order to experiment with QRP narrowband digital modes.
+I am licensed radio amateur who is extremely keen on experiments in the area
+of the digital modes on HF. My QRZ page is https://www.qrz.com/db/R2BDY
 
 # Feedback
 I gracefully appreciate any thoughts or comments on that matter.
+I strongly appreciate if you use this project as a part of your one.
+I have plans of building a transceiver on the base of this library.
 
 # Quick-start
 1. Install Raspberry Pi Pico SDK. Configure environment variables. Test whether 

@@ -12,7 +12,7 @@
 //  DESCRIPTION
 //
 //      The oscillator provides precise generation of any frequency ranging
-//  from 1.5 to 9.8 MHz with tenth's of millihertz resolution (please note that
+//  from 1.1 to 9.4 MHz with tenth's of millihertz resolution (please note that
 //  this is relative resolution owing to the fact that the absolute accuracy of 
 //  onboard crystal of pi pico is limited).
 //      The DCO uses phase locked loop principle programmed in C.
@@ -66,6 +66,8 @@
 
 #include "build/dco.pio.h"
 
+int32_t si32precise_cycles;
+
 /// @brief Initializes DCO context and prepares PIO hardware.
 /// @param pdco Ptr to DCO context.
 /// @param gpio The GPIO of DCO output.
@@ -105,15 +107,14 @@ int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz)
     assert_(pdco);
     assert(pdco->_clkfreq_hz);
 
-    if(pdco->_clkfreq_hz / ui32_frq_hz < 27)
-    {
-        //return -1;
-    }
+    ui32_frq_hz <<= 1;
 
     /* RPix: Calculate an accurate value of phase increment of the freq 
        per 1 tick of CPU clock, here 2^24 is scaling coefficient. */
     pdco->_frq_cycles_per_pi = (int32_t)(((int64_t)pdco->_clkfreq_hz * (int64_t)(1<<24) 
                                          + (ui32_frq_hz>>1)) / (int64_t)ui32_frq_hz);
+
+    si32precise_cycles = pdco->_frq_cycles_per_pi;
 
     return 0;
 }
@@ -138,7 +139,6 @@ void PioDCOStop(PioDco *pdco)
 /// @brief the dedicated pi pico core.
 /// @param pDCO Ptr to DCO context.
 /// @return No return. It spins forever.
-static int32_t si32precise_cycles;
 void RAM (PioDCOWorker)(PioDco *pDCO)
 {
     assert_(pDCO);
@@ -150,9 +150,10 @@ void RAM (PioDCOWorker)(PioDco *pDCO)
 
     register uint32_t *preg32 = pDCO->_ui32_pioreg;
     register uint8_t *pu8reg = (uint8_t *)preg32;
-    si32precise_cycles = pDCO->_frq_cycles_per_pi;
+    //si32precise_cycles = pDCO->_frq_cycles_per_pi;
     for(;;)
     {
+        const register int32_t i32reg = si32precise_cycles;
         /* RPix: Load the next precise value of CPU CLK cycles per DCO cycle,
            scaled by 2^24. It yields about 24 millihertz resolution at @10MHz
            DCO frequency. */
@@ -160,13 +161,13 @@ void RAM (PioDCOWorker)(PioDco *pDCO)
         {
             /* RPix: Calculate the integer number of CPU CLK cycles per next
                DCO cycle, corrected by accumulated error (feedback of the PLL). */
-            const int32_t i32wc = iSAR(si32precise_cycles - i32acc_error + (1<<23), 24);
+            const int32_t i32wc = iSAR(i32reg - i32acc_error + (1<<23), 24);
 
             /* RPix: Calculate the difference btw calculated value scaled to
                `fine` state and precise value of DCO cycles per CPU CLK cycle. 
                This forms a phase locked loop which provides precise freq 
                on long run. */
-            i32acc_error += (i32wc<<24) - si32precise_cycles;
+            i32acc_error += (i32wc<<24) - i32reg;
 
             /* RPix: Set PIO array contents corrected by pio program delay
                of N CPU CLK cycles owing to pio asm instructions. */

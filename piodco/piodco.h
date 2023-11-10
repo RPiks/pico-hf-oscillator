@@ -12,7 +12,7 @@
 //  DESCRIPTION
 //
 //      The oscillator provides precise generation of any frequency ranging
-//  from 1.5 to 9.8 MHz with tenth's of millihertz resolution (please note that
+//  from 1.1 to 9.4 MHz with tenth's of millihertz resolution (please note that
 //  this is relative resolution owing to the fact that the absolute accuracy of 
 //  onboard crystal of pi pico is limited).
 //      The DCO uses phase locked loop principle programmed in C.

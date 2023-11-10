@@ -1,51 +1,67 @@
 .program dco
     set x, 0
+    set y, 0
 
-
-.wrap_target
-    pull ifempty    //                                              1
-    out y, 32        // load 8-bit delay value in terms of cycles.   2
+.wrap_target        //                                              CYCLES
+    pull            // load full 32-bit register.                   1c
+    out y, 8        // load 8-bit delay value.                      2c
+    mov x, y        // copy value in order to do next PI cycle.     3c
 LOOP0:
-    jmp y-- LOOP0   // do accurate delay.                           3+t
-    set pins, 1     // set pins = 1.                                4+t.
-
-
-    pull ifempty    //                                              5+t
-    out y, 32        // load 8-bit delay value in terms of cycles.   6+t
+    jmp x-- LOOP0   // do exactly X*CPU CLK delay.                  4c+x
+    set pins, 1 [3] // set output high.                             5c+x
+    
 LOOP1:
-    jmp y-- LOOP1   //                                              7+t
-    set pins, 0     //                                              8+t
-                    // CLK/8 max, 250MHz/8 = 31.25 MHz output max frq.
-                    // CLK/(255+8) min, 250MHz/263 = 950 kHz min frq.
-                    // So, it covers 3..30 MHz HF band + 160 meter band.
-//    pull ifempty
-//    out y, 32
-//LOOP2:
-//    jmp y-- LOOP2
-//    set pins, 1
+    jmp y-- LOOP1   // do exactly X*CPU CLK delay.                  8c+x
+    set pins, 0     // set output high.                             9c+x
+
+    // RPix: The next sections repeat aforementioned algo 3 times.
+    out y, 8
+    mov x, y [1]
+LOOP2:
+    jmp x-- LOOP2
+    set pins, 1 [3]
+LOOP3:
+    jmp y-- LOOP3
+    set pins, 0
 
 
-//    pull ifempty
-//    out y, 32
-//LOOP3:
-//    jmp y-- LOOP3
-//    set pins, 0
+    out y, 8
+    mov x, y [1]
+LOOP4:
+    jmp x-- LOOP4
+    set pins, 1 [3]
+LOOP5:
+    jmp y-- LOOP5
+    set pins, 0
+
+
+    out y, 8
+    mov x, y [1]
+LOOP6:
+    jmp x-- LOOP6
+    set pins, 1 [3]
+LOOP7:
+    jmp y-- LOOP7
+    set pins, 0
 
 .wrap
 
 % c-sdk {
+
+#define PIOASM_DELAY_CYCLES 5
+
 static inline void dco_program_init(PIO pio, uint sm, uint offset, uint pin)
 {
     pio_sm_config c = dco_program_get_default_config(offset);
     sm_config_set_out_pins(&c, pin, 1);
     pio_gpio_init(pio, pin);
 
-    sm_config_set_out_shift(&c, false, true, 32);           // Autopull.
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+    //sm_config_set_out_shift(&c, true, true, 32);           // Autopull.
 
     pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
     
-    sm_config_set_clkdiv(&c, 1.f);
+    sm_config_set_clkdiv_int_frac(&c, 1u, 0u);
 
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);
@@ -63,4 +79,8 @@ static inline void dco_program_puts(PIO pio, uint sm, const uint32_t *s)
     pio_sm_put_blocking(pio, sm, s[7]);
 }
 
+static inline void dco_program_puts1w(PIO pio, uint sm, const uint32_t val)
+{
+    pio_sm_put_blocking(pio, sm, val);
+}
 %}

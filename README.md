@@ -16,13 +16,17 @@ pi pico overclocking to 270MHz.
 # Phased locked loop in C
 The DCO uses phase locked loop principle programmed in C.
 
-# Integer arithmetic
-The DCO does *NOT* use any floating point operations - all time-critical 
-instructions run in 1 CPU cycle.
+# *NO* additional hardware
+The DCO provides the output signal on the GPIO pin. However if you want to
+transmit the signal, you should calculate and provide a lowpass filter of
+appropriate frequancy. Please also figure out whether you possess rights
+to emit radio frequency energy on desired frequancy.
 
 # Dual-core
 The DCO uses extensively the secodary core of the pico. The first one is for
-your iseas how to modulate the DCO to obtain desired signal.
+your ideas how to modulate the DCO to obtain a desired signal.
+The DCO does *NOT* use any floating point operations - all time-critical 
+instructions run in 1 CPU cycle.
 
 # Radio transmitters
 Owing to the meager frequency step, it is possible to use 3, 5, or 7th harmonics 
@@ -57,3 +61,8 @@ for an oscilloscope or a spectrum analyser. The default output pin is GPIO6.
 6. Set any other frequency ranging from 1.1 to 9.4 MHz by #define GEN_FRQ_HZ and build the project. 
 
 7. Provide the feedback by clicking like on the github page of the project.
+
+
+Cheers,
+Roman Piksaykin, amateur callsign R2BDY
+https://www.qrz.com/db/R2BDY

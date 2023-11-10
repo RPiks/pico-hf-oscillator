@@ -59,11 +59,4 @@
 #define GPIO(x) (x)                        /* pico GPIO number to address. */
 #define PLL_SYS_MHZ 270                                   /* system clock. */
 
-/****************************************************************************
-* Timer defs.
-****************************************************************************/
-#define TIMER_ALARM_NUM                 0
-#define TIMER_ALARM_IRQ                 TIMER_IRQ_0
-#define TIMER_HARDWARE_CLOCK_FREQ_HZ    1000000L
-
 #endif

@@ -63,8 +63,6 @@
 #define RAM __not_in_flash_func         /* Place time-critical func in RAM */
 #define RAM_A __not_in_flash("A")        /* Place time-critical var in RAM */
 
-#define TWO_PI  (1<<24)
-
      /* A macro for arithmetic right shifts, with casting of the argument. */
 #define iSAR(arg, rcount) (((int32_t)(arg)) >> (rcount))
 

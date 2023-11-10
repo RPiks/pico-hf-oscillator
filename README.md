@@ -30,14 +30,15 @@ instructions run in 1 CPU cycle.
 
 # Radio transmitters
 Owing to the meager frequency step, it is possible to use 3, 5, or 7th harmonics 
-of generated frequency. The practical resolution will be quite the same. Such 
-solution completely cover all HF and low band up to 65.8 MHz.
+of generated frequency. The practical resolution will be quite the same - far
+below 1 Hz. Such solution completely cover all HF and low band up to 65.8 MHz.
 
 # For what?
-This is an experimental project of amateur radio class and it is devised by me on 
-the free will base in order to experiment with QRP narrowband digital modes.
-I am licensed radio amateur who is extremely keen on experiments in the area
-of the digital modes on HF. My QRZ page is https://www.qrz.com/db/R2BDY
+This is an experimental project of amateur radio hobby and it is devised by me 
+in order to experiment with QRP narrowband digital modes.
+I am licensed radio amateur who is keen on experiments in the area of the 
+digital modes on HF. 
+My QRZ page is https://www.qrz.com/db/R2BDY
 
 ![DSC_0269](https://github.com/RPiks/pico-DCO/assets/47501785/dfa3ae65-5ceb-46cb-a4ec-bf7b5defc5ec)
 

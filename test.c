@@ -144,6 +144,25 @@ void RAM (SpinnerSweepTest)(void)
     }
 }
 
+void RAM (SpinnerRTTYTest)(void)
+{
+    int i = 0;
+    int32_t df = 170;   /* 170 Hz freq diff. */
+    uint32_t rndval = 77777777;
+    for(;;)
+    {
+        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - df*(rndval & 1));
+
+        /* LED signal */
+        gpio_put(PICO_DEFAULT_LED_PIN, 1);
+        sleep_ms(100);
+        gpio_put(PICO_DEFAULT_LED_PIN, 0);
+        sleep_ms(100);
+
+        PRN32(&rndval);
+    }
+}
+
 int main() 
 {
     const uint32_t clkhz = PLL_SYS_MHZ * 1000000L;
@@ -154,8 +173,9 @@ int main()
 
     multicore_launch_core1(core1_entry);
 
-    SpinnerSweepTest();
+    //SpinnerSweepTest();
     //SpinnerMFSKTest();
+    SpinnerRTTYTest();
 }
 
 void PRN32(uint32_t *val)

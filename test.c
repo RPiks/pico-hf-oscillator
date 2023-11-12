@@ -79,6 +79,7 @@
 #define GEN_FRQ_HZ 9400000L
 
 PioDco DCO;
+void PRN32(uint32_t *val);
 
 /* This is the code of dedicated core. 
    We deal with extremely precise real-time task. */
@@ -100,21 +101,42 @@ void core1_entry()
     PioDCOWorker(&DCO);
 }
 
-void RAM (Spinner)(void)
+void RAM (SpinnerMFSKTest)(void)
+{
+    int i = 0;
+    uint32_t rndval = 77777777;
+    for(;;)
+    {
+        /* This example sets new RND frequency every ~250 ms.
+           Frequency shift is 5 Hz for each step.
+        */
+        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - 5*(rndval & 7));
+
+        /* LED signal */
+        gpio_put(PICO_DEFAULT_LED_PIN, 1);
+        sleep_ms(250);
+        gpio_put(PICO_DEFAULT_LED_PIN, 0);
+        sleep_ms(250);
+
+        PRN32(&rndval);
+    }
+}
+
+void RAM (SpinnerSweepTest)(void)
 {
     int i = 0;
     for(;;)
     {
-        /* This example sets new frequency every ~500 ms.
+        /* This example sets new frequency every ~250 ms.
            Frequency shift is 5 Hz for each step.
         */
         PioDCOSetFreq(&DCO, GEN_FRQ_HZ - 5*i);
 
         /* LED signal */
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
-        sleep_ms(500);
+        sleep_ms(250);
         gpio_put(PICO_DEFAULT_LED_PIN, 0);
-        sleep_ms(500);
+        sleep_ms(250);
 
         /* Return to initial freq after 20 steps (100 Hz). */
         if(++i == 20)
@@ -132,5 +154,13 @@ int main()
 
     multicore_launch_core1(core1_entry);
 
-    Spinner();
+    SpinnerSweepTest();
+    //SpinnerMFSKTest();
+}
+
+void PRN32(uint32_t *val)
+{ 
+    *val ^= *val << 13;
+    *val ^= *val >> 17;
+    *val ^= *val << 5;
 }

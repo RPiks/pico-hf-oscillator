@@ -151,13 +151,17 @@ void RAM (SpinnerRTTYTest)(void)
     uint32_t rndval = 77777777;
     for(;;)
     {
+        /* This example sets new PRN frequency every ~22 ms.
+           Note: You should use precise timing while building a real transmitter.
+        */
+
         PioDCOSetFreq(&DCO, GEN_FRQ_HZ - df*(rndval & 1));
 
         /* LED signal */
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
-        sleep_ms(100);
+        sleep_ms(22);
         gpio_put(PICO_DEFAULT_LED_PIN, 0);
-        sleep_ms(100);
+        sleep_ms(22);
 
         PRN32(&rndval);
     }

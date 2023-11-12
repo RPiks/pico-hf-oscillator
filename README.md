@@ -6,6 +6,8 @@ necessary build files to build a custom application which turns pico into
 precise PLL digital frequency oscillator of the portion of HF radio spectrum
 1.1 to 9.4MHz with high resolution.
 
+https://youtube.com/shorts/qe6UaCIKlow?feature=share
+
 # Precise frequency resolution
 The library provides 1 Hz frequency resolution in initialize function. This
 resolution can be easily increased to 23 millihertz, which is limited by

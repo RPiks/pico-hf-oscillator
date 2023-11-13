@@ -95,7 +95,7 @@ void core1_entry()
     PioDCOStart(&DCO);
 
     /* Set initial freq. */
-    assert_(0 == PioDCOSetFreq(&DCO, freq_hz));
+    assert_(0 == PioDCOSetFreq(&DCO, freq_hz, 0u));
 
     /* Run the main DCO algorithm. It spins forever. */
     PioDCOWorker(&DCO);
@@ -103,14 +103,13 @@ void core1_entry()
 
 void RAM (SpinnerMFSKTest)(void)
 {
-    int i = 0;
     uint32_t rndval = 77777777;
     for(;;)
     {
         /* This example sets new RND frequency every ~250 ms.
            Frequency shift is 5 Hz for each step.
         */
-        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - 5*(rndval & 7));
+        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - 5*(rndval & 7), 0u);
 
         /* LED signal */
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
@@ -130,7 +129,7 @@ void RAM (SpinnerSweepTest)(void)
         /* This example sets new frequency every ~250 ms.
            Frequency shift is 5 Hz for each step.
         */
-        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - 5*i);
+        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - 5*i, 0u);
 
         /* LED signal */
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
@@ -146,7 +145,6 @@ void RAM (SpinnerSweepTest)(void)
 
 void RAM (SpinnerRTTYTest)(void)
 {
-    int i = 0;
     int32_t df = 170;   /* 170 Hz freq diff. */
     uint32_t rndval = 77777777;
     for(;;)
@@ -154,14 +152,52 @@ void RAM (SpinnerRTTYTest)(void)
         /* This example sets new PRN frequency every ~22 ms.
            Note: You should use precise timing while building a real transmitter.
         */
-
-        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - df*(rndval & 1));
+        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - df*(rndval & 1), 0u);
 
         /* LED signal */
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
         sleep_ms(22);
         gpio_put(PICO_DEFAULT_LED_PIN, 0);
         sleep_ms(22);
+
+        PRN32(&rndval);
+    }
+}
+
+void RAM (SpinnerMilliHertzTest)(void)
+{
+    int i = 0;
+    for(;;)
+    {
+        /* This example sets new frequency every ~1s.
+           Frequency shift is 0.99 Hz for each step.
+        */
+        PioDCOSetFreq(&DCO, GEN_FRQ_HZ, 990*(++i&1));
+
+        /* LED signal */
+        gpio_put(PICO_DEFAULT_LED_PIN, 1);
+        sleep_ms(1000);
+        gpio_put(PICO_DEFAULT_LED_PIN, 0);
+        sleep_ms(1000);
+    }
+}
+
+void RAM (SpinnerWide4FSKTest)(void)
+{
+    int32_t df = 100;   /* 100 Hz freq diff * 4 = 400 Hz. */
+    uint32_t rndval = 77777777;
+    for(;;)
+    {
+        /* This example sets new PRN frequency every ~20 ms.
+           Note: You should use precise timing while building a real transmitter.
+        */
+        PioDCOSetFreq(&DCO, GEN_FRQ_HZ - df*(rndval & 3), 0u);
+
+        /* LED signal */
+        gpio_put(PICO_DEFAULT_LED_PIN, 1);
+        sleep_ms(20);
+        gpio_put(PICO_DEFAULT_LED_PIN, 0);
+        sleep_ms(20);
 
         PRN32(&rndval);
     }
@@ -178,8 +214,10 @@ int main()
     multicore_launch_core1(core1_entry);
 
     //SpinnerSweepTest();
-    //SpinnerMFSKTest();
-    SpinnerRTTYTest();
+    SpinnerMFSKTest();
+    //SpinnerRTTYTest();
+    //SpinnerMilliHertzTest();
+    //SpinnerWide4FSKTest();
 }
 
 void PRN32(uint32_t *val)

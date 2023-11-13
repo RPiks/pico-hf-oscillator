@@ -34,6 +34,7 @@
 //  REVISION HISTORY
 // 
 //      Rev 0.1   05 Nov 2023
+//      Rev 0.2   18 Nov 2023
 //  Initial release.
 //
 //  LICENCE
@@ -87,7 +88,7 @@ typedef struct
 } PioDco;
 
 int PioDCOInit(PioDco *pdco, int gpio, int cpuclkhz);
-int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz);
+int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, uint32_t ui32_frq_millihz);
 
 void PioDCOStart(PioDco *pdco);
 void PioDCOStop(PioDco *pdco);

@@ -20,38 +20,38 @@ if (PICO_SDK_VERSION_STRING VERSION_LESS "1.4.0")
   message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.4.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
 endif()
 
-project(pico-DCO-test C CXX ASM)
+project(pico-hf-oscillator-test C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(pico-DCO-test)
+add_executable(pico-hf-oscillator-test)
 
-pico_generate_pio_header(pico-DCO-test ${CMAKE_CURRENT_LIST_DIR}/piodco/dco.pio)
+pico_generate_pio_header(pico-hf-oscillator-test ${CMAKE_CURRENT_LIST_DIR}/piodco/dco.pio)
 
-target_sources(pico-DCO-test PUBLIC
+target_sources(pico-hf-oscillator-test PUBLIC
 	      ${CMAKE_CURRENT_LIST_DIR}/lib/assert.c
         ${CMAKE_CURRENT_LIST_DIR}/piodco/piodco.c
         ${CMAKE_CURRENT_LIST_DIR}/test.c
         )
 
-pico_set_program_name(pico-DCO-test "pico-DCO-test")
-pico_set_program_version(pico-DCO-test "0.9")
+pico_set_program_name(pico-hf-oscillator-test "pico-hf-oscillator-test")
+pico_set_program_version(pico-hf-oscillator-test "0.9")
 
-pico_enable_stdio_uart(pico-DCO-test 1)
-pico_enable_stdio_usb(pico-DCO-test 0)
+pico_enable_stdio_uart(pico-hf-oscillator-test 1)
+pico_enable_stdio_usb(pico-hf-oscillator-test 0)
 
 # Add the standard include files to the build
-target_include_directories(pico-DCO-test PRIVATE
+target_include_directories(pico-hf-oscillator-test PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
 
 # Add any user requested libraries
 target_link_libraries(
-        pico-DCO-test
+        pico-hf-oscillator-test
         pico_stdlib
         pico_sync
         pico_multicore
@@ -61,4 +61,4 @@ target_link_libraries(
         hardware_vreg
         )
 
-pico_add_extra_outputs(pico-DCO-test)
+pico_add_extra_outputs(pico-hf-oscillator-test)

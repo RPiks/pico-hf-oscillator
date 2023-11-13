@@ -97,22 +97,25 @@ int PioDCOInit(PioDco *pdco, int gpio, int cpuclkhz)
     return 0;
 }
 
-/// @brief Sets DCO working frequency in Hz.
+/// @brief Sets DCO working frequency in Hz: Fout = ui32_frq_hz + ui32_frq_millihz * 1e-3.
 /// @param pdco Ptr to DCO context.
-/// @param ui32_frq_hz The frequency [Hz].
+/// @param ui32_frq_hz The `coarse` part of frequency [Hz].
+/// @param ui32_frq_millihz The `fine` part of frequency [Hz].
 /// @return 0 if OK. -1 invalid freq.
 /// @attention The func can be called while DCO running.
-int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz)
+int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, uint32_t ui32_frq_millihz)
 {
     assert_(pdco);
     assert(pdco->_clkfreq_hz);
 
-    ui32_frq_hz <<= 1;
-
     /* RPix: Calculate an accurate value of phase increment of the freq 
        per 1 tick of CPU clock, here 2^24 is scaling coefficient. */
-    pdco->_frq_cycles_per_pi = (int32_t)(((int64_t)pdco->_clkfreq_hz * (int64_t)(1<<24) 
-                                         + (ui32_frq_hz>>1)) / (int64_t)ui32_frq_hz);
+    const int64_t i64denominator = 2000LL * (int64_t)ui32_frq_hz + (int64_t)ui32_frq_millihz;
+    pdco->_frq_cycles_per_pi = (int32_t)(((int64_t)pdco->_clkfreq_hz * (int64_t)(1<<24) * 1000LL
+                                         +(i64denominator>>1)) / i64denominator);
+
+    //pdco->_frq_cycles_per_pi = (int32_t)(((int64_t)pdco->_clkfreq_hz * (int64_t)(1<<24)
+                                         //+ (ui32_frq_hz>>1)) / (int64_t)ui32_frq_hz);
 
     si32precise_cycles = pdco->_frq_cycles_per_pi;
 

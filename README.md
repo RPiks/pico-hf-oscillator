@@ -1,4 +1,3 @@
-# pico-DCO
 # Digital controlled radio frequency oscillator for Raspberry Pi Pico 
 
 The library for Raspberry Pi Pico includes the headers and source code and all 
@@ -44,7 +43,7 @@ I am licensed radio amateur who is keen on experiments in the area of the
 digital modes on HF. 
 My QRZ page is https://www.qrz.com/db/R2BDY
 
-![DSC_0269](https://github.com/RPiks/pico-DCO/assets/47501785/dfa3ae65-5ceb-46cb-a4ec-bf7b5defc5ec)
+![DSC_0269](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/dfa3ae65-5ceb-46cb-a4ec-bf7b5defc5ec)
 
 # Feedback
 I gracefully appreciate any thoughts or comments on that matter.
@@ -55,8 +54,8 @@ I have plans of building a transceiver on the base of this library.
 1. Install Raspberry Pi Pico SDK. Configure environment variables. Test whether 
 it is built successfully.
 
-2. git clone this repository. cd pico-DCO ; ./build.sh
-Check whether output file ./build/pico-DCO.uf2 appears.
+2. git clone this repository. cd pico-hf-oscillator ; ./build.sh
+Check whether output file ./build/pico-hf-oscillator.uf2 appears.
 
 3. Prepare the surrogate antenna (if you possess an SSB receiver) or pin-out
 for an oscilloscope or a spectrum analyser. The default output pin is GPIO6.

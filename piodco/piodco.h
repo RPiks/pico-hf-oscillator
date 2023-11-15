@@ -33,9 +33,11 @@
 //
 //  REVISION HISTORY
 // 
-//      Rev 0.1   05 Nov 2023
+//      Rev 0.1   05 Nov 2023   Initial release
 //      Rev 0.2   18 Nov 2023
-//  Initial release.
+//
+//  PROJECT PAGE
+//      https://github.com/RPiks/pico-hf-oscillator
 //
 //  LICENCE
 //      MIT License (http://www.opensource.org/licenses/mit-license.php)

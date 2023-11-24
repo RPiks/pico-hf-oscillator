@@ -64,11 +64,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "GPStime.h"
 
-GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_pio)
+static GPStimeData *spGPStimeData = NULL;
+
+GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio)
 {
     ASSERT_(0 == uart_id || 1 == uart_id);
     ASSERT_(uart_baud <= 115200);
-    ASSERT_(pps_pio < 29);
+    ASSERT_(pps_gpio < 29);
 
     // Set up our UART with the required speed.
     uart_init(uart_id ? uart1 : uart0, uart_baud);
@@ -82,7 +84,13 @@ GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_pio)
     ASSERT_(pgt);
     pgt->_uart_id = uart_id;
     pgt->_uart_baudrate = uart_baud;
-    pgt->_pps_pio = pps_pio;
+    pgt->_pps_pio = pps_gpio;
+
+    spGPStimeData = &pgt->_time_data;
+
+    gpio_init(pps_gpio);
+    gpio_set_dir(pps_gpio, GPIO_IN);
+    gpio_set_irq_enabled_with_callback(pps_gpio, GPIO_IRQ_EDGE_RISE, true, &GPStimePPScallback);
 }
 
 void GPStimeDestroy(GPStimeContext **pp)
@@ -93,4 +101,37 @@ void GPStimeDestroy(GPStimeContext **pp)
     uart_deinit((*pp)->_uart_id ? uart1 : uart0);
     free(*pp);
     *pp = NULL;
+}
+
+void __not_in_flash_func (GPStimePPScallback)(uint gpio, uint32_t events)
+{   
+    if(spGPStimeData)
+    {
+        const uint64_t tm64 = GetUptime64();
+        spGPStimeData->_u64_sysclk_pps_last = tm64;
+        const int32_t ksliding_len = sizeof(spGPStimeData->_pu64_sliding_pps_tm) 
+                                   / sizeof(spGPStimeData->_pu64_sliding_pps_tm[0]);
+        
+        ++spGPStimeData->_ix_last;
+        spGPStimeData->_ix_last %= ksliding_len;
+        const uint8_t ix_oldest = spGPStimeData->_ix_last;
+
+        int64_t dt_1M = 1000000LL * (tm64 - spGPStimeData->_pu64_sliding_pps_tm[ix_oldest]);
+        spGPStimeData->_pu64_sliding_pps_tm[spGPStimeData->_ix_last] = tm64;
+
+        if(spGPStimeData->_u64_pps_period_1M)
+        {
+            spGPStimeData->_u64_pps_period_1M += iSAR(dt_1M - spGPStimeData->_u64_pps_period_1M + 4, 3);
+        }
+        else
+        {
+            spGPStimeData->_u64_pps_period_1M = dt_1M;
+        }
+#if 1
+    dt_1M = (dt_1M + ksliding_len/2) / ksliding_len;
+    const uint64_t tmp = (spGPStimeData->_u64_pps_period_1M + ksliding_len/2) / ksliding_len;
+    printf("%llu %lld %llu\n", spGPStimeData->_u64_sysclk_pps_last, dt_1M, tmp);
+#endif
+
+    }
 }

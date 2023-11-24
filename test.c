@@ -68,6 +68,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "defines.h"
 
@@ -75,9 +76,12 @@
 #include "build/dco.pio.h"
 #include "hardware/vreg.h"
 #include "pico/multicore.h"
+#include "pico/stdio/driver.h"
 
 #include "./lib/assert.h"
 #include "hwdefs.h"
+
+#include <GPStime.h>
 
 #define GEN_FRQ_HZ 9400000L
 
@@ -210,6 +214,26 @@ int main()
 {
     const uint32_t clkhz = PLL_SYS_MHZ * 1000000L;
     set_sys_clock_khz(clkhz / 1000L, true);
+
+    stdio_init_all();
+
+    //uart_init(uart0, 9600);
+    //gpio_set_function(0, GPIO_FUNC_UART);
+    //gpio_set_function(1, GPIO_FUNC_UART);
+
+    GPStimeContext *pGPS = GPStimeInit(0, 9600, 2);
+    for(;;) {}
+
+    for(;;) 
+    {
+        char ch = uart_getc(uart0);
+        if(ch)
+        {
+            stdio_set_driver_enabled(&stdio_uart, false);
+            printf("%c", ch);
+            stdio_set_driver_enabled(&stdio_uart, true);
+        }
+    }
 
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);

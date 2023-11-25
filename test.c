@@ -216,13 +216,15 @@ int main()
     set_sys_clock_khz(clkhz / 1000L, true);
 
     stdio_init_all();
-
-    //uart_init(uart0, 9600);
-    //gpio_set_function(0, GPIO_FUNC_UART);
-    //gpio_set_function(1, GPIO_FUNC_UART);
+    sleep_ms(1000);
+    printf("Start\n");
 
     GPStimeContext *pGPS = GPStimeInit(0, 9600, 2);
-    for(;;) {}
+    for(;;) 
+    {
+        GPStimeDump(&(pGPS->_time_data));
+        sleep_ms(1000);
+    }
 
     for(;;) 
     {

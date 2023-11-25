@@ -6,13 +6,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 //
-//  gpstime.h - GPS time reference utilities for digital controlled radio freq
+//  gpstime.c - GPS time reference utilities for digital controlled radio freq
 //              oscillator based on Raspberry Pi Pico.
 //
 //  DESCRIPTION
 //
 //      GPS time utilities for PioDco oscillator calculates a precise frequency
-//  between the local Pico oscillator and reference oscillator of GPS system.
+//  shift between the local Pico oscillator and reference oscill. of GPS system.
 //  The value of the shift is used to correct PioDco generated frequency. The
 //  practical precision of this solution within tenths millihertz range.
 //  The value of this accuracy depends  on quality of navigation solution of GPS 
@@ -89,6 +89,12 @@ GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio)
     gpio_init(pps_gpio);
     gpio_set_dir(pps_gpio, GPIO_IN);
     gpio_set_irq_enabled_with_callback(pps_gpio, GPIO_IRQ_EDGE_RISE, true, &GPStimePPScallback);
+
+    irq_set_exclusive_handler(UART0_IRQ, GPStimeUartRxIsr);
+    irq_set_enabled(UART0_IRQ, true);
+    uart_set_irq_enables(uart0, true, false);
+
+    return pgt;
 }
 
 void GPStimeDestroy(GPStimeContext **pp)
@@ -129,7 +135,7 @@ void __not_in_flash_func (GPStimePPScallback)(uint gpio, uint32_t events)
             }
         }
 
-#ifdef DEBUGLOG
+#ifdef NOP
         const int64_t dt_1M = (dt_per_window + (eSlidingLen >> 1)) / eSlidingLen;
         const uint64_t tmp = (spGPStimeData->_u64_pps_period_1M + (eSlidingLen >> 1)) / eSlidingLen;
         printf("%llu %lld %llu %lld\n", spGPStimeData->_u64_sysclk_pps_last, dt_1M, tmp, 
@@ -186,7 +192,9 @@ void __not_in_flash_func (GPStimeUartRxIsr)()
 
         if(spGPStimeContext->_is_sentence_ready)
         {
+            spGPStimeContext->_u8_ixw = 0;
             spGPStimeContext->_i32_error_count -= GPStimeProcNMEAsentence(spGPStimeContext);
+            //printf("err: %ld\n", spGPStimeContext->_i32_error_count);
         }
     }
 }
@@ -195,28 +203,105 @@ int GPStimeProcNMEAsentence(GPStimeContext *pg)
 {
     assert_(pg);
 
-    uint8_t *prmc = strnstr(pg->_pbytebuff, "$GPRMC", sizeof(pg->_pbytebuff));
+    uint8_t *prmc = (uint8_t *)strnstr((char *)pg->_pbytebuff, "$GPRMC,", sizeof(pg->_pbytebuff));
     if(prmc)
     {
-        uint8_t u8ixcollector[16], chksum = '$'^'G'^'P'^'R'^'M'^'C'^',';
-        for(uint8_t u8ix = prmc - pg->_pbytebuff + 7, i = 0;
-            u8ix != prmc - pg->_pbytebuff; ++u8ix)
+        uint64_t tm_fix = GetUptime64();
+
+        uint8_t u8ixcollector[16] = {0};
+        uint8_t chksum = 0;
+        for(uint8_t u8ix = 0, i = 0; u8ix != sizeof(pg->_pbytebuff); ++u8ix)
         {
-            chksum ^= pg->_pbytebuff[u8ix];
-            if(',' == pg->_pbytebuff[u8ix])
+            uint8_t *p = pg->_pbytebuff + u8ix;
+            chksum ^= *p;
+            if(',' == *p)
             {
-                pg->_pbytebuff[u8ix] = 0;
-                u8ixcollector[i++] = u8ix;
-                if(12 == i)
+                *p = 0;
+                u8ixcollector[i++] = u8ix + 1;
+                if('*' == *p || 12 == i)
                 {
                     break;
                 }
             }
         }
+        
+        pg->_time_data._u8_is_solution_active = 'A' == prmc[u8ixcollector[1]];
+
+        if(pg->_time_data._u8_is_solution_active)
+        {
+            pg->_time_data._i64_lat_100k = (int64_t)(.5f + 1e5 * atof((const char *)prmc + u8ixcollector[2]));
+            if('N' == prmc[u8ixcollector[3]]) { }
+            else if('S' == prmc[u8ixcollector[3]])
+            {
+                INVERSE(pg->_time_data._i64_lat_100k);
+            }
+            else
+            {
+                return -2;
+            }
+
+            pg->_time_data._i64_lon_100k = (int64_t)(.5f + 1e5 * atof((const char *)prmc + u8ixcollector[4]));
+            if('E' == prmc[u8ixcollector[5]]) { }
+            else if('W' == prmc[u8ixcollector[5]])
+            {
+                INVERSE(pg->_time_data._i64_lon_100k);
+            }
+            else
+            {
+                return -3;
+            }
+
+            if('*' != prmc[u8ixcollector[11] + 1])
+            {
+                return -4;
+            }
+
+            pg->_time_data._u32_utime_nmea_last = GPStime2UNIX(prmc + u8ixcollector[8], prmc + u8ixcollector[0]);
+            pg->_time_data._u64_sysclk_nmea_last = tm_fix;
+        }
     }
+    
+    return 0;
 
     /*
         "$GPRMC,105954.000,A,3150.6731,N,11711.9399,E,0.00,96.10,250313,,,A*53";
     */
+}
+
+uint32_t GPStime2UNIX(const char *pdate, const char *ptime)
+{
+    assert_(pdate);
+    assert_(ptime);
+
+    if(strlen(pdate) == 6 && strlen(ptime) > 5)
+    {
+        struct tm ltm = {0};
+
+        ltm.tm_year = 100 + DecimalStr2ToNumber(pdate + 4);
+        ltm.tm_mon  = DecimalStr2ToNumber(pdate + 2) - 1;
+        ltm.tm_mday = DecimalStr2ToNumber(pdate);
+
+        ltm.tm_hour = DecimalStr2ToNumber(ptime);
+        ltm.tm_min = DecimalStr2ToNumber(ptime + 2);
+        ltm.tm_sec = DecimalStr2ToNumber(ptime + 4);
+
+        return mktime(&ltm);
+    }
+
     return 0;
+}
+
+void GPStimeDump(const GPStimeData *pd)
+{
+    assert_(pd);
+
+    static int tick = 0;
+
+    printf("%u\nActive:%u\n", tick++, pd->_u8_is_solution_active);
+    printf("NMEA utime last:%lu\n", pd->_u32_utime_nmea_last);
+    printf("SYSCKL NMEA last:%llu\n", pd->_u64_sysclk_nmea_last);
+    printf("Lat:%lld Lon:%lld\n", pd->_i64_lat_100k, pd->_i64_lon_100k);
+    printf("SYSCKL PPS last:%llu\n", pd->_u64_sysclk_pps_last);
+    printf("PPS period e6:%llu\n", (pd->_u64_pps_period_1M + (eSlidingLen>>1)) / eSlidingLen);
+    printf("FRQ corr ppb:%lld\n\n", pd->_i32_freq_shift_ppb);
 }

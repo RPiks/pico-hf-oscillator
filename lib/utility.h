@@ -22,4 +22,9 @@ inline uint32_t PicoU64timeToSeconds(uint64_t u64tm)
     return u64tm / 1000000U;    // No rounding deliberately!
 }
 
+inline uint32_t DecimalStr2ToNumber(const char *p)
+{
+    return 10U * (p[0] - '0') + (p[1] - '0');
+}
+
 #endif

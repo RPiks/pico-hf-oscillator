@@ -11,27 +11,22 @@
 //
 //  DESCRIPTION
 //
-//      GPS time utilities for PioDco oscillator provides a precise reference
-//  frequency in order to obtain an absolute accuracy of PioDco. The value of
-//  this  accuracy  depends  on quality of navigation solution of GPS receiver.
-//  This quality can be estimated by GDOP (geometric dilution of precision) and
-//  TDOP (time dilution of precision) received in NMEA-0183 message packet from
-//  GPS receiver.
-//      The Pico's frequency error due to drift of its CLK oscillator is
-//  calculated by that utilities and is used to shift PioDco frequency to
-//  compensate the drift. So, the absolute frequency value which we possess
-//  on the GPIO pin is supposed to be much more accurate when using GPS time
-//  utilities.
+//      GPS time utilities for PioDco oscillator calculates a precise frequency
+//  shift between the local Pico oscillator and reference oscill. of GPS system.
+//  The value of the shift is used to correct PioDco generated frequency. The
+//  practical precision of this solution within tenths millihertz range.
+//  The value of this accuracy depends  on quality of navigation solution of GPS 
+//  receiver. This quality can be estimated by GDOP and TDOP parameters received 
+//  in NMEA-0183 message packet from GPS receiver.
 //      Owing to the meager PioDco frequency step in millihertz range, we obtain
-//  a quasi-analog precision frequency source.
+//  a quasi-analog precision frequency source (if the GPS navigation works ok).
 //      This is an experimental project of amateur radio class and it is devised
 //  by me on the free will base in order to experiment with QRP narrowband
 //  digital modes including extremely ones such as QRSS.
-//      I gracefully appreciate any thoughts or comments on this matter.
+//      I gracefully appreciate any thoughts or comments on that matter.
 //
 //  PLATFORM
 //      Raspberry Pi pico.
-//      A GPS receiver module which supports PPS (pulse per second) output.
 //
 //  REVISION HISTORY
 // 
@@ -70,6 +65,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
 #include "../defines.h"
@@ -122,12 +118,14 @@ typedef struct
 GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio);
 void GPStimeDestroy(GPStimeContext **pp);
 
-//void GPStimeProcessingTick(GPStimeContext *pg);
 int GPStimeProcNMEAsentence(GPStimeContext *pg);
 
 void __not_in_flash_func (GPStimePPScallback)(uint gpio, uint32_t events);
 void __not_in_flash_func (GPStimeUartRxIsr)();
 
 int GPStimeGetTime(const GPStimeContext *pg, uint32_t *u32_tmdst);
+uint32_t GPStime2UNIX(const char *pdate, const char *ptime);
+
+void GPStimeDump(const GPStimeData *pd);
 
 #endif

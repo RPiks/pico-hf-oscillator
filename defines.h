@@ -78,4 +78,8 @@
 
 #define ABS(x) ((x) > 0 ? (x) : -(x))
 
+#define INVERSE(x) ((x) = -(x))
+
+#define asizeof(a) (sizeof (a) / sizeof ((a)[0]))
+
 #endif

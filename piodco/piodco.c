@@ -95,7 +95,6 @@ int PioDCOInit(PioDco *pdco, int gpio, int cpuclkhz)
     sm_config_set_set_pins(&pdco->_pio_sm, pdco->_gpio, 1);
     pio_gpio_init(pdco->_pio, pdco->_gpio);
     pio_sm_init(pdco->_pio, pdco->_ism, pdco->_offset, &pdco->_pio_sm);
-    //pio_sm_set_enabled(pdco->_pio, pdco->_ism, true);
 
     return 0;
 }
@@ -116,9 +115,6 @@ int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, uint32_t ui32_frq_millihz)
     const int64_t i64denominator = 2000LL * (int64_t)ui32_frq_hz + (int64_t)ui32_frq_millihz;
     pdco->_frq_cycles_per_pi = (int32_t)(((int64_t)pdco->_clkfreq_hz * (int64_t)(1<<24) * 1000LL
                                          +(i64denominator>>1)) / i64denominator);
-
-    //pdco->_frq_cycles_per_pi = (int32_t)(((int64_t)pdco->_clkfreq_hz * (int64_t)(1<<24)
-                                         //+ (ui32_frq_hz>>1)) / (int64_t)ui32_frq_hz);
 
     si32precise_cycles = pdco->_frq_cycles_per_pi;
 
@@ -151,12 +147,10 @@ void RAM (PioDCOWorker)(PioDco *pDCO)
 
     register PIO pio = pDCO->_pio;
     register uint sm = pDCO->_ism;
-
     register int32_t i32acc_error = 0;
-
     register uint32_t *preg32 = pDCO->_ui32_pioreg;
     register uint8_t *pu8reg = (uint8_t *)preg32;
-    //si32precise_cycles = pDCO->_frq_cycles_per_pi;
+
     for(;;)
     {
         const register int32_t i32reg = si32precise_cycles;
@@ -167,7 +161,7 @@ void RAM (PioDCOWorker)(PioDco *pDCO)
         {
             /* RPix: Calculate the integer number of CPU CLK cycles per next
                DCO cycle, corrected by accumulated error (feedback of the PLL). */
-            const int32_t i32wc = iSAR(i32reg - i32acc_error + (1<<23), 24);
+            const int32_t i32wc = iSAR32(i32reg - i32acc_error + (1<<23), 24);
 
             /* RPix: Calculate the difference btw calculated value scaled to
                `fine` state and precise value of DCO cycles per CPU CLK cycle. 
@@ -182,4 +176,14 @@ void RAM (PioDCOWorker)(PioDco *pDCO)
 
         dco_program_puts(pio, sm, preg32);
     }
+}
+
+/// @brief Sets DCO running mode.
+/// @param pdco Ptr to DCO context.
+/// @param emode Desired mode.
+void PioDCOSetMode(PioDco *pdco, enum PioDcoMode emode)
+{
+    assert_(pdco);
+    pdco->_mode = emode;
+    eDCOMODE_IDLE == emode ? PioDCOStop(pdco) : PioDCOStart(pdco);
 }

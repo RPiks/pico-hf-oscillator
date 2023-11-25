@@ -33,7 +33,7 @@ pico_generate_pio_header(pico-hf-oscillator-test ${CMAKE_CURRENT_LIST_DIR}/piodc
 
 target_sources(pico-hf-oscillator-test PUBLIC
 	      ${CMAKE_CURRENT_LIST_DIR}/lib/assert.c
-#        ${CMAKE_CURRENT_LIST_DIR}/lib/utility.c
+        ${CMAKE_CURRENT_LIST_DIR}/lib/thirdparty/strnstr.c
         ${CMAKE_CURRENT_LIST_DIR}/piodco/piodco.c
         ${CMAKE_CURRENT_LIST_DIR}/gpstime/GPStime.c
         ${CMAKE_CURRENT_LIST_DIR}/test.c

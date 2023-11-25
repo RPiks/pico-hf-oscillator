@@ -72,8 +72,18 @@
 
 #include "defines.h"
 
+enum PioDcoMode
+{
+    eDCOMODE_IDLE = 0,
+    eDCOMODE_FREERUN = 1,
+    eDCOMODE_GPS_REFERENCE = 2,
+    eDCOMODE_THERMO_COMPENSATION = 3
+};
+
 typedef struct
 {
+    enum PioDcoMode _mode;      /* Running mode. */
+
     PIO _pio;                   /* Worker PIO on this DCO. */
     int _gpio;                  /* Pico' GPIO for DCO output. */
 
@@ -94,6 +104,8 @@ int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, uint32_t ui32_frq_millihz)
 
 void PioDCOStart(PioDco *pdco);
 void PioDCOStop(PioDco *pdco);
+
+void PioDCOSetMode(PioDco *pdco, enum PioDcoMode emode);
 
 void RAM (PioDCOWorker)(PioDco *pDCO);
 

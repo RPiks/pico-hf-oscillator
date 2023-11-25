@@ -27,10 +27,11 @@
 //      This is an experimental project of amateur radio class and it is devised
 //  by me on the free will base in order to experiment with QRP narrowband
 //  digital modes including extremely ones such as QRSS.
-//      I gracefully appreciate any thoughts or comments on that matter.
+//      I gracefully appreciate any thoughts or comments on this matter.
 //
 //  PLATFORM
 //      Raspberry Pi pico.
+//      A GPS receiver module which supports PPS (pulse per second) output.
 //
 //  REVISION HISTORY
 // 
@@ -68,28 +69,38 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
 #include "../defines.h"
 #include "../lib/assert.h"
 #include "../lib/utility.h"
+#include "../lib/thirdparty/strnstr.h"
 
 #define ASSERT_(x) assert_(x)
 
+enum
+{
+    eDtUpscale = 1000000,
+    eSlidingLen = 32,
+    eCLKperTimeMark = 1000000,
+    eMaxCLKdevPPM = 250
+};
+
 typedef struct
 {
-    uint8_t _u8_is_sol_active;              // A navigation solution is valid.
-    uint32_t _u32_utime_nmea_last;          // The last unix time received from GPS.
-    uint64_t _u64_sysclk_nmea_last;         // The sysclk of the last unix time received.
-    int64_t _i64_lat_100k, _i64_lon_100k;   // The lat, lon, degrees, multiplied by 1e5.
+    uint8_t _u8_is_solution_active;             /* A navigation solution is valid. */
+    uint32_t _u32_utime_nmea_last;              /* The last unix time received from GPS. */
+    uint64_t _u64_sysclk_nmea_last;             /* The sysclk of the last unix time received. */
+    int64_t _i64_lat_100k, _i64_lon_100k;       /* The lat, lon, degrees, multiplied by 1e5. */
 
-    uint64_t _u64_sysclk_pps_last;          // The sysclk of the last rising edge of PPS.
-    uint64_t _u64_pps_period_1M;            // The PPS avg. period *1e6, filtered.
+    uint64_t _u64_sysclk_pps_last;              /* The sysclk of the last rising edge of PPS. */
+    uint64_t _u64_pps_period_1M;                /* The PPS avg. period *1e6, filtered. */
 
-    uint64_t _pu64_sliding_pps_tm[32];      // A sliding window to store PPS periods.
-    uint8_t _ix_last;                       // An index of last write to sliding window.
+    uint64_t _pu64_sliding_pps_tm[eSlidingLen]; /* A sliding window to store PPS periods. */
+    uint8_t _ix_last;                           /* An index of last write to sliding window. */
 
-    int32_t _i32_LO_freq_corr_milhz;        // SYSCLK frequency correction, milliHertz.
+    int64_t _i32_freq_shift_ppb;                /* Calcd frequency shift, parts per billion. */
 
 } GPStimeData;
 
@@ -97,22 +108,26 @@ typedef struct
 {
     int _uart_id;
     int _uart_baudrate;
-    int _pps_pio;
+    int _pps_gpio;
 
     GPStimeData _time_data;
 
     uint8_t _pbytebuff[256];
     uint8_t _u8_ixw;
     uint8_t _is_sentence_ready;
+    int32_t _i32_error_count;
 
 } GPStimeContext;
 
 GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio);
 void GPStimeDestroy(GPStimeContext **pp);
 
-void GPStimeISRTick(GPStimeContext *pg);
+//void GPStimeProcessingTick(GPStimeContext *pg);
 int GPStimeProcNMEAsentence(GPStimeContext *pg);
 
 void __not_in_flash_func (GPStimePPScallback)(uint gpio, uint32_t events);
+void __not_in_flash_func (GPStimeUartRxIsr)();
+
+int GPStimeGetTime(const GPStimeContext *pg, uint32_t *u32_tmdst);
 
 #endif

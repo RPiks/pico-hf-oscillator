@@ -17,4 +17,9 @@ inline uint32_t GetTime32(void)
     return timer_hw->timelr;
 }
 
+inline uint32_t PicoU64timeToSeconds(uint64_t u64tm)
+{
+    return u64tm / 1000000U;    // No rounding deliberately!
+}
+
 #endif

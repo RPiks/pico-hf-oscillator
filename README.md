@@ -25,6 +25,7 @@ to emit radio frequency energy on desired frequency.
 
 # GPS reference frequency correction (optional) since V0.9
 GPS reference frequency correction option provides an absolute frequency error within about ~1Hz in long term.
+
 ![pico-hf-oscillator](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/06700e39-6b5f-4a6a-828a-d1cfdd9418ce)
 
 # Dual-core
@@ -42,6 +43,7 @@ below 1 Hz. Such solution completely cover all HF and low band up to 65.8 MHz.
 Sweep (5Hz step, carrier is 9.4MHz) test: https://youtu.be/nYC1VDBiz4o
 Pseudorandom MFSK (5Hz step, carrier is 9.4MHz) test: https://www.youtube.com/shorts/CEPW8hwlG7k
 There is WSPR beacon project based on this oscillator: https://github.com/RPiks/pico-WSPR-tx
+
 ![pico-wspr-rx](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/013375d2-2d9d-439c-b221-e9c8ef3a8fb0)
 
 # For what?

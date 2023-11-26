@@ -89,6 +89,7 @@ typedef struct
     uint32_t _u32_utime_nmea_last;              /* The last unix time received from GPS. */
     uint64_t _u64_sysclk_nmea_last;             /* The sysclk of the last unix time received. */
     int64_t _i64_lat_100k, _i64_lon_100k;       /* The lat, lon, degrees, multiplied by 1e5. */
+    uint32_t _u32_nmea_gprmc_count;             /* The count of $GPRMC sentences received */
 
     uint64_t _u64_sysclk_pps_last;              /* The sysclk of the last rising edge of PPS. */
     uint64_t _u64_pps_period_1M;                /* The PPS avg. period *1e6, filtered. */
@@ -120,8 +121,8 @@ void GPStimeDestroy(GPStimeContext **pp);
 
 int GPStimeProcNMEAsentence(GPStimeContext *pg);
 
-void __not_in_flash_func (GPStimePPScallback)(uint gpio, uint32_t events);
-void __not_in_flash_func (GPStimeUartRxIsr)();
+void RAM (GPStimePPScallback)(uint gpio, uint32_t events);
+void RAM (GPStimeUartRxIsr)();
 
 int GPStimeGetTime(const GPStimeContext *pg, uint32_t *u32_tmdst);
 uint32_t GPStime2UNIX(const char *pdate, const char *ptime);

@@ -72,12 +72,12 @@
 
 #include "defines.h"
 
+#include "../gpstime/GPStime.h"
+
 enum PioDcoMode
 {
-    eDCOMODE_IDLE = 0,
-    eDCOMODE_FREERUN = 1,
-    eDCOMODE_GPS_REFERENCE = 2,
-    eDCOMODE_THERMO_COMPENSATION = 3
+    eDCOMODE_IDLE = 0,          /* No output. */
+    eDCOMODE_GPS_COMPENSATED= 2 /* Internally compensated, if GPS available. */
 };
 
 typedef struct
@@ -97,10 +97,13 @@ typedef struct
 
     uint32_t _clkfreq_hz;       /* CPU CLK freq, Hz. */
 
+    GPStimeContext *_pGPStime;  /* Ptr to GPS time context. */
+
 } PioDco;
 
 int PioDCOInit(PioDco *pdco, int gpio, int cpuclkhz);
-int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, uint32_t ui32_frq_millihz);
+int PioDCOSetFreq(PioDco *pdco, uint32_t u32_frq_hz, int32_t u32_frq_millihz);
+int32_t PioDCOGetFreqShiftMilliHertz(const PioDco *pdco, uint64_t u64_desired_frq_millihz);
 
 void PioDCOStart(PioDco *pdco);
 void PioDCOStop(PioDco *pdco);

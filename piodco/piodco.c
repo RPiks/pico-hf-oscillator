@@ -69,7 +69,7 @@
 
 #include "build/dco.pio.h"
 
-int32_t si32precise_cycles;
+int32_t si32precise_cycles; /* External in order to support ISR. */
 
 /// @brief Initializes DCO context and prepares PIO hardware.
 /// @param pdco Ptr to DCO context.
@@ -101,11 +101,11 @@ int PioDCOInit(PioDco *pdco, int gpio, int cpuclkhz)
 
 /// @brief Sets DCO working frequency in Hz: Fout = ui32_frq_hz + ui32_frq_millihz * 1e-3.
 /// @param pdco Ptr to DCO context.
-/// @param ui32_frq_hz The `coarse` part of frequency [Hz].
+/// @param i32_frq_hz The `coarse` part of frequency [Hz]. Might be negative.
 /// @param ui32_frq_millihz The `fine` part of frequency [Hz].
 /// @return 0 if OK. -1 invalid freq.
 /// @attention The func can be called while DCO running.
-int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, uint32_t ui32_frq_millihz)
+int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, int32_t ui32_frq_millihz)
 {
     assert_(pdco);
     assert(pdco->_clkfreq_hz);
@@ -119,6 +119,38 @@ int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, uint32_t ui32_frq_millihz)
     si32precise_cycles = pdco->_frq_cycles_per_pi;
 
     return 0;
+}
+
+/// @brief Obtains the frequency shift [milliHz] which is calculated for a given frequency.
+/// @param pdco Ptr to Context.
+/// @param u64_desired_frq_millihz The frequency for which we want to calculate correction.
+/// @return The value of correction we need to subtract from desired freq. to compensate
+/// @return Pico's reference clock shift. 2854974.
+int32_t PioDCOGetFreqShiftMilliHertz(const PioDco *pdco, uint64_t u64_desired_frq_millihz)
+{
+    assert_(pdco);
+    if(!pdco->_pGPStime)
+    {
+        return 0U;
+    }
+
+    static int64_t i64_last_correction = 0;
+    const int64_t dt = pdco->_pGPStime->_time_data._i32_freq_shift_ppb; /* Parts per billion. */
+    if(dt)
+    {
+        i64_last_correction = dt;
+    }
+
+    int32_t i32ret_millis;
+    if(i64_last_correction)
+    {
+        int64_t i64corr_coeff = (u64_desired_frq_millihz + 500000LL) / 1000000LL;
+        i32ret_millis = (i64_last_correction * i64corr_coeff + 50000LL) / 1000000LL;
+
+        return i32ret_millis;
+    }
+
+    return 0U;
 }
 
 /// @brief Starts the DCO.
@@ -163,10 +195,9 @@ void RAM (PioDCOWorker)(PioDco *pDCO)
                DCO cycle, corrected by accumulated error (feedback of the PLL). */
             const int32_t i32wc = iSAR32(i32reg - i32acc_error + (1<<23), 24);
 
-            /* RPix: Calculate the difference btw calculated value scaled to
-               `fine` state and precise value of DCO cycles per CPU CLK cycle. 
-               This forms a phase locked loop which provides precise freq 
-               on long run. */
+            /* RPix: Calculate the difference betwixt calculated value scaled to
+               fine resolution back and precise value of DCO cycles per CPU CLK cycle. 
+               This forms a phase locked loop which provides precise freq */
             i32acc_error += (i32wc<<24) - i32reg;
 
             /* RPix: Set PIO array contents corrected by pio program delay
@@ -181,9 +212,23 @@ void RAM (PioDCOWorker)(PioDco *pDCO)
 /// @brief Sets DCO running mode.
 /// @param pdco Ptr to DCO context.
 /// @param emode Desired mode.
+/// @attention Not actual so far. User-independent freq. correction not impl'd yet. !FIXME!
 void PioDCOSetMode(PioDco *pdco, enum PioDcoMode emode)
 {
     assert_(pdco);
     pdco->_mode = emode;
-    eDCOMODE_IDLE == emode ? PioDCOStop(pdco) : PioDCOStart(pdco);
+
+    switch(emode)
+    {
+        case eDCOMODE_IDLE:
+            PioDCOStop(pdco);
+            break;
+
+        case eDCOMODE_GPS_COMPENSATED:
+            PioDCOStart(pdco);
+            break;
+
+        default:
+            break;
+    }
 }

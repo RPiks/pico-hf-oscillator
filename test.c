@@ -79,14 +79,14 @@
 #include "pico/stdio/driver.h"
 
 #include "./lib/assert.h"
+#include "./debug/logutils.h"
 #include "hwdefs.h"
 
 #include <GPStime.h>
 
 #define GEN_FRQ_HZ 9400000L
 
-PioDco DCO;
-void PRN32(uint32_t *val);
+PioDco DCO; /* External in order to access in both cores. */
 
 /* This is the code of dedicated core. 
    We deal with extremely precise real-time task. */
@@ -210,6 +210,47 @@ void RAM (SpinnerWide4FSKTest)(void)
     }
 }
 
+/* This example sets the OUT frequency to 5.555 MHz.
+   Next every ~1 sec the shift of the OUT frequency relative to GPS
+   reference is calculated and the OUT frequency is corrected.
+   The example is working only when GPS receiver provides an
+   accurate PPS output (pulse per second). If no such option,
+   the correction parameter is zero.
+*/
+void RAM (SpinnerGPSreferenceTest)(void)
+{
+    const uint32_t ku32_freq = 5555000UL;
+    const int kigps_pps_pin = 2;
+
+    int32_t i32_compensation_millis = 0;
+
+    GPStimeContext *pGPS = GPStimeInit(0, 9600, kigps_pps_pin);
+    assert_(pGPS);
+    DCO._pGPStime = pGPS;
+    int tick = 0;
+    for(;;)
+    {
+        PioDCOSetFreq(&DCO, ku32_freq, -2*i32_compensation_millis);
+
+        /* LED signal */
+        gpio_put(PICO_DEFAULT_LED_PIN, 1);
+        sleep_ms(500);
+
+        i32_compensation_millis = 
+            PioDCOGetFreqShiftMilliHertz(&DCO, (uint64_t)(ku32_freq * 1000LL));
+
+        StampPrintf("GPS solution status: %s | GPS-based freq compensation: %ld milliHz", 
+            pGPS->_time_data._u8_is_solution_active ? "Active" : "No solution",
+            i32_compensation_millis);
+
+        gpio_put(PICO_DEFAULT_LED_PIN, 0);
+        sleep_ms(500);
+
+        if(0 == ++tick % 30)
+            GPStimeDump(&(pGPS->_time_data));
+    }
+}
+
 int main() 
 {
     const uint32_t clkhz = PLL_SYS_MHZ * 1000000L;
@@ -218,14 +259,8 @@ int main()
     stdio_init_all();
     sleep_ms(1000);
     printf("Start\n");
-
-    GPStimeContext *pGPS = GPStimeInit(0, 9600, 2);
-    for(;;) 
-    {
-        GPStimeDump(&(pGPS->_time_data));
-        sleep_ms(1000);
-    }
-
+  
+/*
     for(;;) 
     {
         char ch = uart_getc(uart0);
@@ -236,22 +271,17 @@ int main()
             stdio_set_driver_enabled(&stdio_uart, true);
         }
     }
-
+*/
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 
     multicore_launch_core1(core1_entry);
 
     //SpinnerSweepTest();
-    SpinnerMFSKTest();
+    //SpinnerMFSKTest();
     //SpinnerRTTYTest();
     //SpinnerMilliHertzTest();
     //SpinnerWide4FSKTest();
+    SpinnerGPSreferenceTest();
 }
 
-void PRN32(uint32_t *val)
-{ 
-    *val ^= *val << 13;
-    *val ^= *val >> 17;
-    *val ^= *val << 5;
-}

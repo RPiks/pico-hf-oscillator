@@ -27,4 +27,11 @@ inline uint32_t DecimalStr2ToNumber(const char *p)
     return 10U * (p[0] - '0') + (p[1] - '0');
 }
 
+inline void PRN32(uint32_t *val)
+{ 
+    *val ^= *val << 13;
+    *val ^= *val >> 17;
+    *val ^= *val << 5;
+}
+
 #endif

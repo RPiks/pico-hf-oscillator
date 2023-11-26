@@ -63,22 +63,25 @@
 static GPStimeContext *spGPStimeContext = NULL;
 static GPStimeData *spGPStimeData = NULL;
 
+/// @brief Initializes GPS time module Context.
+/// @param uart_id UART id to which GPS receiver is connected, 0 OR 1.
+/// @param uart_baud UART baudrate, 115200 max.
+/// @param pps_gpio GPIO pin of PPS (second pulse) from GPS receiver.
+/// @return the new GPS time Context.
 GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio)
 {
     ASSERT_(0 == uart_id || 1 == uart_id);
     ASSERT_(uart_baud <= 115200);
     ASSERT_(pps_gpio < 29);
 
-    // Set up our UART with the required speed.
+    // Set up our UART with the required speed & assign pins.
     uart_init(uart_id ? uart1 : uart0, uart_baud);
-
-    // Set the TX and RX pins by using the function select on the GPIO
-    // Set datasheet for more information on function select
     gpio_set_function(uart_id ? 8 : 12, GPIO_FUNC_UART);
     gpio_set_function(uart_id ? 9 : 13, GPIO_FUNC_UART);
 
     GPStimeContext *pgt = calloc(1, sizeof(GPStimeContext));
     ASSERT_(pgt);
+
     pgt->_uart_id = uart_id;
     pgt->_uart_baudrate = uart_baud;
     pgt->_pps_gpio = pps_gpio;
@@ -90,13 +93,16 @@ GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio)
     gpio_set_dir(pps_gpio, GPIO_IN);
     gpio_set_irq_enabled_with_callback(pps_gpio, GPIO_IRQ_EDGE_RISE, true, &GPStimePPScallback);
 
-    irq_set_exclusive_handler(UART0_IRQ, GPStimeUartRxIsr);
-    irq_set_enabled(UART0_IRQ, true);
-    uart_set_irq_enables(uart0, true, false);
+    irq_set_exclusive_handler(uart_id ? UART1_IRQ : UART0_IRQ, GPStimeUartRxIsr);
+    irq_set_enabled(uart_id ? UART1_IRQ : UART0_IRQ, true);
+    uart_set_irq_enables(uart_id ? uart1 : uart0, true, false);
 
     return pgt;
 }
 
+/// @brief Deinits the GPS module and destroys allocated resources.
+/// @param pp Ptr to Ptr of the Context.
+/// @attention *NOT* implemented completely so far. !FIXME!
 void GPStimeDestroy(GPStimeContext **pp)
 {
     ASSERT_(pp);
@@ -107,7 +113,9 @@ void GPStimeDestroy(GPStimeContext **pp)
     *pp = NULL;
 }
 
-void __not_in_flash_func (GPStimePPScallback)(uint gpio, uint32_t events)
+/// @brief The PPS interrupt service subroutine.
+/// @param  gpio The GPIO pin of Pico which is connected to PPS output of GPS rec.
+void RAM (GPStimePPScallback)(uint gpio, uint32_t events)
 {   
     const uint64_t tm64 = GetUptime64();
     if(spGPStimeData)
@@ -145,7 +153,7 @@ void __not_in_flash_func (GPStimePPScallback)(uint gpio, uint32_t events)
     }
 }
 
-/// @brief Calculates current unixtime using information available.
+/// @brief Calculates current unixtime using data available.
 /// @param pg Ptr to the context.
 /// @param u32_tmdst Ptr to destination unixtime val.
 /// @return 0 if OK.
@@ -177,7 +185,8 @@ int GPStimeGetTime(const GPStimeContext *pg, uint32_t *u32_tmdst)
     return 0;
 }
 
-void __not_in_flash_func (GPStimeUartRxIsr)()
+/// @brief UART FIFO ISR. Processes another N chars receiver from GPS rec.
+void RAM (GPStimeUartRxIsr)()
 {
     if(spGPStimeContext)
     {
@@ -194,11 +203,17 @@ void __not_in_flash_func (GPStimeUartRxIsr)()
         {
             spGPStimeContext->_u8_ixw = 0;
             spGPStimeContext->_i32_error_count -= GPStimeProcNMEAsentence(spGPStimeContext);
-            //printf("err: %ld\n", spGPStimeContext->_i32_error_count);
         }
     }
 }
 
+/// @brief Processes a NMEA sentence GPRMC.
+/// @param pg Ptr to Context.
+/// @return 0 OK.
+/// @return -2 Error: bad lat format.
+/// @return -3 Error: bad lon format.
+/// @return -4 Error: no final '*' char ere checksum value.
+/// @attention Checksum validation is not implemented so far. !FIXME!
 int GPStimeProcNMEAsentence(GPStimeContext *pg)
 {
     assert_(pg);
@@ -207,7 +222,6 @@ int GPStimeProcNMEAsentence(GPStimeContext *pg)
     if(prmc)
     {
         uint64_t tm_fix = GetUptime64();
-
         uint8_t u8ixcollector[16] = {0};
         uint8_t chksum = 0;
         for(uint8_t u8ix = 0, i = 0; u8ix != sizeof(pg->_pbytebuff); ++u8ix)
@@ -259,15 +273,17 @@ int GPStimeProcNMEAsentence(GPStimeContext *pg)
             pg->_time_data._u32_utime_nmea_last = GPStime2UNIX(prmc + u8ixcollector[8], prmc + u8ixcollector[0]);
             pg->_time_data._u64_sysclk_nmea_last = tm_fix;
         }
+
+        ++pg->_time_data._u32_nmea_gprmc_count;
     }
     
     return 0;
-
-    /*
-        "$GPRMC,105954.000,A,3150.6731,N,11711.9399,E,0.00,96.10,250313,,,A*53";
-    */
 }
 
+/// @brief Converts GPS time and date strings to unix time.
+/// @param pdate Date string, 6 chars in work.
+/// @param ptime Time string, 6 chars in work.
+/// @return Unix timestamp (epoch). 0 if bad imput format.
 uint32_t GPStime2UNIX(const char *pdate, const char *ptime)
 {
     assert_(pdate);
@@ -291,17 +307,18 @@ uint32_t GPStime2UNIX(const char *pdate, const char *ptime)
     return 0;
 }
 
+/// @brief Dumps the GPS data struct to stdio.
+/// @param pd Ptr to Context.
 void GPStimeDump(const GPStimeData *pd)
 {
     assert_(pd);
 
-    static int tick = 0;
-
-    printf("%u\nActive:%u\n", tick++, pd->_u8_is_solution_active);
-    printf("NMEA utime last:%lu\n", pd->_u32_utime_nmea_last);
-    printf("SYSCKL NMEA last:%llu\n", pd->_u64_sysclk_nmea_last);
-    printf("Lat:%lld Lon:%lld\n", pd->_i64_lat_100k, pd->_i64_lon_100k);
-    printf("SYSCKL PPS last:%llu\n", pd->_u64_sysclk_pps_last);
-    printf("PPS period e6:%llu\n", (pd->_u64_pps_period_1M + (eSlidingLen>>1)) / eSlidingLen);
-    printf("FRQ corr ppb:%lld\n\n", pd->_i32_freq_shift_ppb);
+    printf("\nGPS solution is active:%u\n", pd->_u8_is_solution_active);
+    printf("GPRMC count:%lu\n", pd->_u32_nmea_gprmc_count);
+    printf("NMEA unixtime last:%lu\n", pd->_u32_utime_nmea_last);
+    printf("NMEA sysclock last:%llu\n", pd->_u64_sysclk_nmea_last);
+    printf("GPS Latitude:%lld Longtitude:%lld\n", pd->_i64_lat_100k, pd->_i64_lon_100k);
+    printf("PPS sysclock last:%llu\n", pd->_u64_sysclk_pps_last);
+    printf("PPS period *1e6:%llu\n", (pd->_u64_pps_period_1M + (eSlidingLen>>1)) / eSlidingLen);
+    printf("FRQ correction ppb:%lld\n\n", pd->_i32_freq_shift_ppb);
 }

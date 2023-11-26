@@ -23,6 +23,10 @@ transmit the signal, you should calculate and provide a lowpass filter of
 appropriate frequency. Please also figure out whether you possess rights
 to emit radio frequency energy on desired frequency.
 
+# GPS reference frequency correction (optional) since V0.9
+GPS reference frequency correction option provides an absolute frequency error within about ~1Hz in long term.
+![pico-hf-oscillator](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/06700e39-6b5f-4a6a-828a-d1cfdd9418ce)
+
 # Dual-core
 The DCO uses extensively the secodary core of the pico. The first one is for
 your ideas how to modulate the DCO to obtain a desired signal.

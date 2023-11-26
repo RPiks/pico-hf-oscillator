@@ -6,11 +6,9 @@ precise PLL digital frequency oscillator of the portion of HF radio spectrum
 1.1 to 9.4MHz with high resolution.
 
 # Precise frequency resolution
-The library provides 1 Hz frequency resolution in initialize function. This
-resolution can be easily increased to 23 millihertz, which is limited by
-24-bit register which is used in algorithm.
-Currently the upper freq. limit is about 9.4 MHz and it is achieved only using 
-pi pico overclocking to 270MHz.
+The library provides about 23 milli-Hz frequency resolution. This resolution is limited by 24-bit register which is used in algorithm.
+The working WSPR beacon which has been built on the base of this project proves that the quality of generated signal is sufficient to such precise (~1.46 Hz step) frequency manipulation digital modes.
+Currently the upper freq. limit is about 9.4 MHz and it is achieved only using Pico overclocking to 270MHz.
 
 ![mfsk-spectra](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/a8309813-8e77-407e-abfc-58cbd262c35c)
 

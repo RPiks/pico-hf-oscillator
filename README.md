@@ -41,6 +41,8 @@ below 1 Hz. Such solution completely cover all HF and low band up to 65.8 MHz.
 # Tests of RF spectrum quality
 Sweep (5Hz step, carrier is 9.4MHz) test: https://youtu.be/nYC1VDBiz4o
 Pseudorandom MFSK (5Hz step, carrier is 9.4MHz) test: https://www.youtube.com/shorts/CEPW8hwlG7k
+There is WSPR beacon project based on this oscillator is working: https://github.com/RPiks/pico-WSPR-tx
+![pico-wspr-rx](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/013375d2-2d9d-439c-b221-e9c8ef3a8fb0)
 
 # For what?
 This is an experimental project of amateur radio hobby and it is devised by me 

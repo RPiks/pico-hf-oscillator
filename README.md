@@ -50,9 +50,10 @@ My QRZ page is https://www.qrz.com/db/R2BDY
 ![DSC_0269](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/dfa3ae65-5ceb-46cb-a4ec-bf7b5defc5ec)
 
 # Feedback
-I gracefully appreciate any thoughts or comments on that matter.
-I strongly appreciate if you use this project as a part of your one.
+I appreciate any thoughts or comments on that matter.
+I strongly appreciate if you use this project as a part of your one in accordance with the Licence.
 I have plans of building a transceiver on the base of this library.
+The WSPR beacon is working and available here: https://github.com/RPiks/pico-WSPR-tx
 
 # Quick-start
 1. Install Raspberry Pi Pico SDK. Configure environment variables. Test whether 

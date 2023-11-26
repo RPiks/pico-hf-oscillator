@@ -234,20 +234,20 @@ void RAM (SpinnerGPSreferenceTest)(void)
 
         /* LED signal */
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
-        sleep_ms(500);
+        sleep_ms(2500);
 
         i32_compensation_millis = 
             PioDCOGetFreqShiftMilliHertz(&DCO, (uint64_t)(ku32_freq * 1000LL));
 
-        StampPrintf("GPS solution status: %s | GPS-based freq compensation: %ld milliHz", 
-            pGPS->_time_data._u8_is_solution_active ? "Active" : "No solution",
-            i32_compensation_millis);
-
         gpio_put(PICO_DEFAULT_LED_PIN, 0);
-        sleep_ms(500);
+        sleep_ms(2500);
 
-        if(0 == ++tick % 30)
+        if(0 == ++tick % 6)
+        {
+            stdio_set_driver_enabled(&stdio_uart, false);
             GPStimeDump(&(pGPS->_time_data));
+            stdio_set_driver_enabled(&stdio_uart, true);
+        }
     }
 }
 
@@ -260,18 +260,6 @@ int main()
     sleep_ms(1000);
     printf("Start\n");
   
-/*
-    for(;;) 
-    {
-        char ch = uart_getc(uart0);
-        if(ch)
-        {
-            stdio_set_driver_enabled(&stdio_uart, false);
-            printf("%c", ch);
-            stdio_set_driver_enabled(&stdio_uart, true);
-        }
-    }
-*/
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 

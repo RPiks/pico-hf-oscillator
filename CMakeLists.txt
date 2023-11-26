@@ -39,7 +39,7 @@ target_sources(pico-hf-oscillator-test PUBLIC
 pico_set_program_name(pico-hf-oscillator-test "pico-hf-oscillator-test")
 pico_set_program_version(pico-hf-oscillator-test "0.9")
 
-pico_enable_stdio_uart(pico-hf-oscillator-test 0)
+pico_enable_stdio_uart(pico-hf-oscillator-test 1)
 pico_enable_stdio_usb(pico-hf-oscillator-test 1)
 
 # Add the standard include files to the build
@@ -48,6 +48,8 @@ target_include_directories(pico-hf-oscillator-test PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/gpstime
   ${CMAKE_CURRENT_LIST_DIR}/..
 )
+
+add_compile_options(-Wall)
 
 # Add any user requested libraries
 target_link_libraries(

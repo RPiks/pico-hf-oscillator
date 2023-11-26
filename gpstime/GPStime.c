@@ -93,6 +93,9 @@ GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio)
     gpio_set_dir(pps_gpio, GPIO_IN);
     gpio_set_irq_enabled_with_callback(pps_gpio, GPIO_IRQ_EDGE_RISE, true, &GPStimePPScallback);
 
+    uart_set_hw_flow(uart_id ? uart1 : uart0, false, false);
+    uart_set_format(uart_id ? uart1 : uart0, 8, 1, UART_PARITY_NONE);
+    uart_set_fifo_enabled(uart_id ? uart1 : uart0, false);
     irq_set_exclusive_handler(uart_id ? UART1_IRQ : UART0_IRQ, GPStimeUartRxIsr);
     irq_set_enabled(uart_id ? UART1_IRQ : UART0_IRQ, true);
     uart_set_irq_enables(uart_id ? uart1 : uart0, true, false);
@@ -221,6 +224,8 @@ int GPStimeProcNMEAsentence(GPStimeContext *pg)
     uint8_t *prmc = (uint8_t *)strnstr((char *)pg->_pbytebuff, "$GPRMC,", sizeof(pg->_pbytebuff));
     if(prmc)
     {
+        ++pg->_time_data._u32_nmea_gprmc_count;
+
         uint64_t tm_fix = GetUptime64();
         uint8_t u8ixcollector[16] = {0};
         uint8_t chksum = 0;
@@ -273,8 +278,6 @@ int GPStimeProcNMEAsentence(GPStimeContext *pg)
             pg->_time_data._u32_utime_nmea_last = GPStime2UNIX(prmc + u8ixcollector[8], prmc + u8ixcollector[0]);
             pg->_time_data._u64_sysclk_nmea_last = tm_fix;
         }
-
-        ++pg->_time_data._u32_nmea_gprmc_count;
     }
     
     return 0;

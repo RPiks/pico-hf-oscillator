@@ -14,7 +14,7 @@ pi pico overclocking to 270MHz.
 
 ![mfsk-spectra](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/a8309813-8e77-407e-abfc-58cbd262c35c)
 
-Here is an example of narrowband FSK ~5 Hz step.
+Here is an example of narrowband FSK (5 Hz step, 20 Hz range in total).
 
 # Phased locked loop in C
 The DCO uses phase locked loop principle programmed in C.

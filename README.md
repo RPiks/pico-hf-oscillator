@@ -12,6 +12,9 @@ resolution can be easily increased to 23 millihertz, which is limited by
 Currently the upper freq. limit is about 9.4 MHz and it is achieved only using 
 pi pico overclocking to 270MHz.
 
+![mfsk-spectra](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/a8309813-8e77-407e-abfc-58cbd262c35c)
+Here is an example of narrowband FSK ~5 Hz step.
+
 # Phased locked loop in C
 The DCO uses phase locked loop principle programmed in C.
 

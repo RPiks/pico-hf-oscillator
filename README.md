@@ -12,7 +12,7 @@ Currently the upper freq. limit is about 9.4 MHz and it is achieved only using P
 
 ![mfsk-spectra](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/a8309813-8e77-407e-abfc-58cbd262c35c)
 
-Here is an example of narrowband FSK (5 Hz step, 20 Hz range in total).
+Here is an example of narrowband FSK (9.4 MHz carrier, 5 Hz step, 20 Hz range in total).
 
 # Phased locked loop in C
 The DCO uses phase locked loop principle programmed in C.
@@ -23,7 +23,7 @@ transmit the signal, you should calculate and provide a lowpass filter of
 appropriate frequency. Please also figure out whether you possess rights
 to emit radio frequency energy on desired frequency.
 
-# GPS reference frequency correction (optional) since V0.9
+# GPS reference frequency correction (optional) since v.0.9
 GPS reference frequency correction option provides an absolute frequency error within about ~1Hz in long term.
 
 ![pico-hf-oscillator](https://github.com/RPiks/pico-hf-oscillator/assets/47501785/06700e39-6b5f-4a6a-828a-d1cfdd9418ce)

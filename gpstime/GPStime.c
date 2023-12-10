@@ -11,19 +11,19 @@
 //
 //  DESCRIPTION
 //
-//      GPS time utilities for PioDco oscillator calculates a precise frequency
+//      GPS time utilities for pico-hf-oscillator calculate a precise frequency
 //  shift between the local Pico oscillator and reference oscill. of GPS system.
-//  The value of the shift is used to correct PioDco generated frequency. The
-//  practical precision of this solution within tenths millihertz range.
-//  The value of this accuracy depends  on quality of navigation solution of GPS 
-//  receiver. This quality can be estimated by GDOP and TDOP parameters received 
+//  The value of the shift is used to correct generated frequency. The practical 
+//  precision of this solution depends on GPS receiver's time pulse stability, 
+//  as well as on quality of navigation solution of GPS receiver. 
+//  This quality can be estimated by GDOP and TDOP parameters received 
 //  in NMEA-0183 message packet from GPS receiver.
-//      Owing to the meager PioDco frequency step in millihertz range, we obtain
-//  a quasi-analog precision frequency source (if the GPS navigation works ok).
+//      Owing to the meager frequency step in millihertz range, we obtain
+//  a quasi-analog precision frequency source (if the GPS navigation works OK).
 //      This is an experimental project of amateur radio class and it is devised
 //  by me on the free will base in order to experiment with QRP narrowband
 //  digital modes including extremely ones such as QRSS.
-//      I gracefully appreciate any thoughts or comments on that matter.
+//      I appreciate any thoughts or comments on that matter.
 //
 //  PLATFORM
 //      Raspberry Pi pico.

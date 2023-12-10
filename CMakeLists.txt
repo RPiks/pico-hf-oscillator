@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.13)
 set(CMAKE_BUILD_TYPE "Release") 
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD 17)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
@@ -22,13 +22,13 @@ project(pico-hf-oscillator-test C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
-
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Og")
 add_executable(pico-hf-oscillator-test)
 
-pico_generate_pio_header(pico-hf-oscillator-test ${CMAKE_CURRENT_LIST_DIR}/piodco/dco.pio)
+pico_generate_pio_header(pico-hf-oscillator-test ${CMAKE_CURRENT_LIST_DIR}/piodco/dco2.pio)
 
 target_sources(pico-hf-oscillator-test PUBLIC
-	${CMAKE_CURRENT_LIST_DIR}/lib/assert.c
+	      ${CMAKE_CURRENT_LIST_DIR}/lib/assert.c
         ${CMAKE_CURRENT_LIST_DIR}/lib/thirdparty/strnstr.c
         ${CMAKE_CURRENT_LIST_DIR}/piodco/piodco.c
         ${CMAKE_CURRENT_LIST_DIR}/gpstime/GPStime.c
@@ -60,7 +60,6 @@ target_link_libraries(
         hardware_timer
         hardware_clocks
         hardware_pio
-        #hardware_vreg
         )
 
 pico_add_extra_outputs(pico-hf-oscillator-test)

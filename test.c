@@ -73,7 +73,7 @@
 #include "defines.h"
 
 #include "piodco/piodco.h"
-#include "build/dco.pio.h"
+#include "build/dco2.pio.h"
 #include "hardware/vreg.h"
 #include "pico/multicore.h"
 #include "pico/stdio/driver.h"
@@ -84,7 +84,7 @@
 
 #include <GPStime.h>
 
-#define GEN_FRQ_HZ 9400000L
+#define GEN_FRQ_HZ 10000000L
 
 PioDco DCO; /* External in order to access in both cores. */
 
@@ -93,7 +93,7 @@ PioDco DCO; /* External in order to access in both cores. */
 void core1_entry()
 {
     const uint32_t clkhz = PLL_SYS_MHZ * 1000000L;
-    const uint32_t freq_hz = GEN_FRQ_HZ;
+    //const uint32_t freq_hz = GEN_FRQ_HZ;
 
     /* Initialize DCO */
     assert_(0 == PioDCOInit(&DCO, 6, clkhz));
@@ -102,10 +102,10 @@ void core1_entry()
     PioDCOStart(&DCO);
 
     /* Set initial freq. */
-    assert_(0 == PioDCOSetFreq(&DCO, freq_hz, 0u));
+    //assert_(0 == PioDCOSetFreq(&DCO, freq_hz, 0u));
 
     /* Run the main DCO algorithm. It spins forever. */
-    PioDCOWorker(&DCO);
+    PioDCOWorker2(&DCO);
 }
 
 void RAM (SpinnerMFSKTest)(void)
@@ -251,6 +251,15 @@ void RAM (SpinnerGPSreferenceTest)(void)
     }
 }
 
+void RAM (SpinnerDummyTest)(void)
+{
+    for(;;)
+    {
+        tight_loop_contents();
+        //PioDCOSetFreq(&DCO, GEN_FRQ_HZ, 0u);
+    }
+}
+
 int main() 
 {
     const uint32_t clkhz = PLL_SYS_MHZ * 1000000L;
@@ -265,11 +274,13 @@ int main()
 
     multicore_launch_core1(core1_entry);
 
+    SpinnerDummyTest();
+
     //SpinnerSweepTest();
     //SpinnerMFSKTest();
     //SpinnerRTTYTest();
     //SpinnerMilliHertzTest();
     //SpinnerWide4FSKTest();
-    SpinnerGPSreferenceTest();
+    //SpinnerGPSreferenceTest();
 }
 

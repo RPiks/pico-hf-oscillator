@@ -67,7 +67,7 @@
 #include <string.h>
 #include "../lib/assert.h"
 
-#include "build/dco.pio.h"
+#include "build/dco2.pio.h"
 
 int32_t si32precise_cycles; /* External in order to support ISR. */
 
@@ -89,11 +89,16 @@ int PioDCOInit(PioDco *pdco, int gpio, int cpuclkhz)
     pdco->_offset = pio_add_program(pdco->_pio, &dco_program);
     pdco->_ism = pio_claim_unused_sm(pdco->_pio, true);
 
+    gpio_init(pdco->_gpio);
+    pio_gpio_init(pdco->_pio, pdco->_gpio);
+
     dco_program_init(pdco->_pio, pdco->_ism, pdco->_offset, pdco->_gpio);
     pdco->_pio_sm = dco_program_get_default_config(pdco->_offset);
 
+    sm_config_set_out_shift(&pdco->_pio_sm, true, true, 32);           // Autopull.
+    sm_config_set_fifo_join(&pdco->_pio_sm, PIO_FIFO_JOIN_TX);
     sm_config_set_set_pins(&pdco->_pio_sm, pdco->_gpio, 1);
-    pio_gpio_init(pdco->_pio, pdco->_gpio);
+    
     pio_sm_init(pdco->_pio, pdco->_ism, pdco->_offset, &pdco->_pio_sm);
 
     return 0;
@@ -167,6 +172,37 @@ void PioDCOStop(PioDco *pdco)
 {
     assert_(pdco);
     pio_sm_set_enabled(pdco->_pio, pdco->_ism, false);
+}
+
+void RAM (PioDCOWorker2)(PioDco *pDCO)
+{
+    register PIO pio = pDCO->_pio;
+    register uint sm = pDCO->_ism;
+    register int32_t i32acc_error = 0;
+    const int32_t ui32_frq_hz = 30455133;
+    const int64_t i64denominator = 2000LL * (int64_t)ui32_frq_hz;
+    pDCO->_frq_cycles_per_pi = (int32_t)(((int64_t)pDCO->_clkfreq_hz * (int64_t)(1<<24) * 1000LL
+                                         +(i64denominator>>1)) / i64denominator);
+    const register uint32_t i32reg = pDCO->_frq_cycles_per_pi - (4<<24);
+    
+    register uint32_t i32wc;
+    //const register uint32_t i23left = 8388608U;
+LOOP:
+    
+    i32wc = i32reg;
+    i32wc -= i32acc_error;
+    //i32wc += i23left;
+    i32wc >>= 24U;
+    pio_sm_put_blocking(pio, sm, i32wc);
+    i32wc <<= 24U;
+    i32acc_error += i32wc - i32reg;
+    
+    //const int32_t i32wc2 = iSAR32(i32reg - i32acc_error + (1<<23), 24);
+    //i32acc_error += (i32wc2<<24) - i32reg;
+
+    //pio_sm_put_blocking(pio, sm, i32wc - 4);
+    
+    goto LOOP;
 }
 
 /// @brief Main worker task of DCO. It is time critical, so it ought to be run on

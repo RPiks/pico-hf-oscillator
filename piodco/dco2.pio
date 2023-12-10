@@ -6,19 +6,43 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 //
-//  dco2.pio Digital controlled radio freq oscillator based on PIO.
+//  dco2.pio - Digital controlled radio freq oscillator based on PIO.
 // 
 //
 //  DESCRIPTION
-//  -
+//
+//      The oscillator provides precise generation of any frequency ranging
+//  from 1 Hz to 33.333 MHz with tenth's of millihertz resolution (please note that
+//  this is relative resolution owing to the fact that the absolute accuracy of 
+//  onboard crystal of pi pico is limited; the absoulte accuracy can be provided
+//  when using GPS reference option included).
+//      The DCO uses phase locked loop principle programmed in C and PIO asm.
+//      The DCO does *NOT* use any floating point operations - all time-critical
+//  instructions run in 1 CPU cycle.
+//      Currently the upper freq. limit is about 33.333 MHz and it is achieved only
+//  using pi pico overclocking to 270 MHz.
+//      Owing to the meager frequency step, it is possible to use 3, 5, or 7th
+//  harmonics of generated frequency. Such solution completely cover all HF and
+//  a portion of VHF band up to about 233 MHz.
+//      Unfortunately due to pure digital freq.synthesis principle the jitter may
+//  be a problem on higher frequencies. You should assess the quality of generated
+//  signal if you want to emit a noticeable power.
+//      This is an experimental project of amateur radio class and it is devised
+//  by me on the free will base in order to experiment with QRP narrowband
+//  digital modes.
+//      I appreciate any thoughts or comments on that matter.
 //
 //  PLATFORM
 //      Raspberry Pi pico.
 //
 //  REVISION HISTORY
 // 
-//      Rev 2.0   09 Dec 2023
-//  New algo devising.
+//      Rev 0.1   05 Nov 2023   Initial release
+//      Rev 0.2   18 Nov 2023
+//      Rev 1.0   10 Dec 2023   Improved frequency range (to ~33.333 MHz).
+//
+//  PROJECT PAGE
+//      https://github.com/RPiks/pico-hf-oscillator
 //
 //  LICENCE
 //      MIT License (http://www.opensource.org/licenses/mit-license.php)
@@ -67,40 +91,6 @@ LOOP3:
     jmp x-- LOOP3
     set pins, 0
 .wrap
-
-/*
-// it is OK for ~20.5M
-.wrap_target
-    out y, 32
-    mov x, y
-LOOP0:
-    jmp x-- LOOP0
-    set pins, 1
-    
-    mov x, y        [1]
-LOOP1:
-    jmp x-- LOOP1
-    set pins, 0
-.wrap
-*/
-/*
-.wrap_target
-                        //          CYCLES COUNT
-    out y, 8            //          1.
-LOOP0:
-    jmp y-- LOOP0       //          2 + y0.
-    set pins, 1         // 1 * PI   3 + y0.
-    
-    out y, 8            //          4 + y0.
-LOOP1:
-    jmp y-- LOOP1       //          5 + y0 + y1.
-    set pins, 0         // 2 * PI   6 + y0 + y1.
-                        //          6 cycles min.=> 270MHz / 6 = 45MHz (VHF low-band).
-                        //                                   3rd harmonic is 135M.
-                        //                                   5th is 225M.
-                        //                                   7th is 315M.       
-.wrap
-*/
 
 % c-sdk {
 

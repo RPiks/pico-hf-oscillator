@@ -29,11 +29,13 @@ pico_generate_pio_header(pico-hf-oscillator-test ${CMAKE_CURRENT_LIST_DIR}/piodc
 
 target_sources(pico-hf-oscillator-test PUBLIC
 	      ${CMAKE_CURRENT_LIST_DIR}/lib/assert.c
-        ${CMAKE_CURRENT_LIST_DIR}/lib/thirdparty/strnstr.c
+#        ${CMAKE_CURRENT_LIST_DIR}/lib/thirdparty/strnstr.c
         ${CMAKE_CURRENT_LIST_DIR}/piodco/piodco.c
         ${CMAKE_CURRENT_LIST_DIR}/gpstime/GPStime.c
         ${CMAKE_CURRENT_LIST_DIR}/debug/logutils.c
         ${CMAKE_CURRENT_LIST_DIR}/test.c
+        ${CMAKE_CURRENT_LIST_DIR}/conswrapper.c
+        ${CMAKE_CURRENT_LIST_DIR}/hfconsole/hfconsole.c
         )
 
 pico_set_program_name(pico-hf-oscillator-test "pico-hf-oscillator-test")
@@ -46,6 +48,7 @@ pico_enable_stdio_usb(pico-hf-oscillator-test 1)
 target_include_directories(pico-hf-oscillator-test PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/gpstime
+  ${CMAKE_CURRENT_LIST_DIR}/hfconsole
   ${CMAKE_CURRENT_LIST_DIR}/..
 )
 

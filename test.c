@@ -94,19 +94,14 @@
 
 #include <GPStime.h>
 
+#include <hfconsole.h>
+
+#include "protos.h"
+
 //#define GEN_FRQ_HZ 32333333L
 #define GEN_FRQ_HZ 29977777L
 
 PioDco DCO; /* External in order to access in both cores. */
-
-void RAM (SpinnerMFSKTest)(void);
-void RAM (SpinnerSweepTest)(void);
-void RAM (SpinnerRTTYTest)(void);
-void RAM (SpinnerMilliHertzTest)(void);
-void RAM (SpinnerWide4FSKTest)(void);
-void RAM (SpinnerGPSreferenceTest)(void);
-
-void core1_entry();
 
 int main() 
 {
@@ -116,6 +111,23 @@ int main()
     stdio_init_all();
     sleep_ms(1000);
     printf("Start\n");
+
+    HFconsoleContext *phfc = HFconsoleInit(-1, 0);
+    HFconsoleSetWrapper(phfc, ConsoleCommandsWrapper);
+
+    for(;;)
+    {
+        sleep_ms(100);
+        int r = HFconsoleProcess(phfc, 10);
+        //printf("%d %s\n", r, phfc->buffer);
+    }
+
+    for(;;)
+    {
+        sleep_ms(100);
+        int chr = getchar_timeout_us(100);//getchar();
+        printf("%d %c\n", chr, (char)chr);
+    }
   
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);

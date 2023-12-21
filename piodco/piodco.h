@@ -104,6 +104,10 @@ typedef struct
 
     GPStimeContext *_pGPStime;  /* Ptr to GPS time context. */
 
+    uint32_t _ui32_frq_hz;      /* Working freq, Hz. */
+    int32_t _ui32_frq_millihz;  /* Working freq additive shift, mHz. */
+    int _is_enabled;
+
 } PioDco;
 
 int PioDCOInit(PioDco *pdco, int gpio, int cpuclkhz);

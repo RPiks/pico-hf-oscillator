@@ -19,5 +19,7 @@ void core1_entry();
 /* conswrapper.c */
 
 void ConsoleCommandsWrapper(char *cmd, int narg, char *params);
+void PushErrorMessage(int id);
+void PushStatusMessage(void);
 
 #endif

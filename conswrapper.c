@@ -48,6 +48,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "./lib/assert.h"
+#include "piodco/piodco.h"
+#include "protos.h"
+
+extern PioDco DCO;
 
 /// @brief Console commands manager. Currently available:
 /// @brief HELP                 - Usage.
@@ -71,16 +75,103 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
         printf("-\n");
         printf("  HELP - this page.\n");
         printf("-\n");
-        printf("  SETFREQ [X] - set output frequency in Hz.\n");
-        printf("  Example: SETFREQ 14074010 - set output frequency to 14.074010 MHz.\n");
+        printf("  STATUS - print system status.\n");
         printf("-\n");
-        printf("  SWITCH [X] - switch generation to ON or OFF state.\n");
-        printf("  Example: SWITCH ON - switch generation to ON state.\n");
+        printf("  SETFREQ f - set output frequency f in Hz.\n");
+        printf("  example: SETFREQ 14074010 - set output frequency to 14.074145 MHz.\n");
+        printf("-\n");
+        printf("  SWITCH s - enable/disable generation.\n");
+        printf("  example: SWITCH ON - enable generation.\n");
     } else if(strstr(cmd, "SETFREQ"))
     {
+        if(2 != narg)
+        {
+            PushErrorMessage(-1);
+            return;
+        }
 
+        const uint32_t ui32frq = atol(params);
+        if(ui32frq < 1000000L || ui32frq > 32333333)
+        {
+            PushErrorMessage(-11);
+            return;
+        }
+
+        PioDCOSetFreq(&DCO, ui32frq, 0U);
+        printf("\nFrequency is set to %lu Hz", ui32frq);
+
+    } else if(strstr(cmd, "STATUS"))
+    {
+        PushStatusMessage();
     } else if(strstr(cmd, "SWITCH"))
     {
+        if(2 != narg)
+        {
+            PushErrorMessage(-1);
+            return;
+        }
+        if(strstr(params, "ON"))
+        {
+            PioDCOStart(&DCO);
+            printf("\nOutput is enabled");
+        } else if(strstr(params, "OFF"))
+        {
+            PioDCOStop(&DCO);
+            printf("\nOutput is disabled");
+        }
+    }
+}
 
+void PushErrorMessage(int id)
+{
+    switch(id)
+    {
+        case -1:
+        printf("\nInvalid argument");
+        break;
+
+        case -11:
+        printf("\nInvalid frequency");
+        break;
+
+        default:
+        printf("\nUnknown error");
+        break;
+    }
+}
+
+void PushStatusMessage(void)
+{
+    printf("\nPico-hf-oscillator system status\n");
+    
+    printf("Working freq: %lu Hz + %ld milliHz\n", DCO._ui32_frq_hz, DCO._ui32_frq_millihz);
+    
+    printf("Output is ");
+    if(DCO._is_enabled)
+    {
+        printf("ENABLED");
+    }
+    else
+    {
+        printf("DISABLED");
+    }
+
+    //printf("\nGPS subsystem info");
+    if(DCO._pGPStime)
+    {
+        printf("\nGPS UART id %d", DCO._pGPStime->_uart_id);
+        printf("\nGPS UART baud %d", DCO._pGPStime->_uart_baudrate);
+        printf("\nGPS PPS GPIO pin %d", DCO._pGPStime->_pps_gpio);
+        printf("\nGPS error count %ld", DCO._pGPStime->_i32_error_count);
+        printf("\nGPS NAV solution flag %u", DCO._pGPStime->_time_data._u8_is_solution_active);
+        printf("\nGPS GPRMC receive count %u", DCO._pGPStime->_time_data._u32_nmea_gprmc_count);
+        printf("\nGPS PPS period %llu", DCO._pGPStime->_time_data._u64_pps_period_1M);
+        printf("\nGPS frequency shift %lld ppb", DCO._pGPStime->_time_data._i32_freq_shift_ppb);
+        printf("\nGPS lat %lld deg1e5", DCO._pGPStime->_time_data._i64_lat_100k);
+        printf("\nGPS lon %lld deg1e5", DCO._pGPStime->_time_data._i64_lon_100k);
+    }
+    else
+    {
+        printf("\nGPS subsystem hasn't been initialized.");
     }
 }

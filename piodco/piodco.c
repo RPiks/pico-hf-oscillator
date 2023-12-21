@@ -128,6 +128,9 @@ int PioDCOSetFreq(PioDco *pdco, uint32_t ui32_frq_hz, int32_t ui32_frq_millihz)
 
     si32precise_cycles = pdco->_frq_cycles_per_pi - (PIOASM_DELAY_CYCLES<<24);
 
+    pdco->_ui32_frq_hz = ui32_frq_hz;
+    pdco->_ui32_frq_millihz = ui32_frq_millihz;
+
     return 0;
 }
 
@@ -169,6 +172,8 @@ void PioDCOStart(PioDco *pdco)
 {
     assert_(pdco);
     pio_sm_set_enabled(pdco->_pio, pdco->_ism, true);
+
+    pdco->_is_enabled = YES;
 }
 
 /// @brief Stops the DCO.
@@ -177,6 +182,8 @@ void PioDCOStop(PioDco *pdco)
 {
     assert_(pdco);
     pio_sm_set_enabled(pdco->_pio, pdco->_ism, false);
+
+    pdco->_is_enabled = NO;
 }
 
 /// @brief Main worker task of DCO V.2. It is time critical, so it ought to be run on

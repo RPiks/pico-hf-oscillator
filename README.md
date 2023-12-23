@@ -39,6 +39,12 @@ Owing to the meager frequency step, it is possible to use 3, 5, or 7th harmonics
 of generated frequency. The practical resolution will be quite the same - far
 below 1 Hz. Such solution completely cover all HF and VHF band up to ~233 MHz.
 
+# Console
+It is possible to work without compling the sources: load .uf2 to the Pico and start minicom serial console via USB:
+minicom -D /dev/ttyACM0
+Enter the command 'HELP' in the console. Follow instructions.
+Here is an example: https://www.youtube.com/watch?v=np87nLzC88o
+
 # Tests of RF spectrum quality
 Sweep test: https://youtu.be/nYC1VDBiz4o
 Pseudorandom MFSK test: https://www.youtube.com/shorts/CEPW8hwlG7k

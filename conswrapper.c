@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "hardware/uart.h"
 #include "./lib/assert.h"
 #include "piodco/piodco.h"
 #include "protos.h"
@@ -86,6 +87,7 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
         printf("  GPSREC OFF/uart_id,pps_pin,baud - enable/disable GPS receiver connection.\n");
         printf("  example: GPS 0,3,9600 - enable GPS receiver connection with UART0 & PPS on gpio3, 9600 baud port speed.\n");
         printf("  example: GPS OFF - disable GPS receiver connection.\n");
+        return;
     } else if(strstr(cmd, "SETFREQ"))
     {
         if(2 != narg)
@@ -102,11 +104,13 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
         }
 
         PioDCOSetFreq(&DCO, ui32frq, 0U);
-        printf("\nFrequency is set to %lu Hz", ui32frq);
+        printf("\nFrequency is set to %lu+.000 Hz", ui32frq);
+        return;
 
     } else if(strstr(cmd, "STATUS"))
     {
         PushStatusMessage();
+        return;
     } else if(strstr(cmd, "SWITCH"))
     {
         if(2 != narg)
@@ -118,10 +122,12 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
         {
             PioDCOStart(&DCO);
             printf("\nOutput is enabled");
+            return;
         } else if(strstr(params, "OFF"))
         {
             PioDCOStop(&DCO);
             printf("\nOutput is disabled");
+            return;
         }
     } else if(strstr(cmd, "GPSREC"))
     {
@@ -143,6 +149,11 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
                     const uint32_t ui32pps = atol(p);
                     p += strlen(p) + 1;
                     const uint32_t ui32baud = atol(p);
+                    if(DCO._pGPStime)
+                    {
+                        GPStimeDestroy(&DCO._pGPStime);
+                        printf("\nGPS subsystem is disabled.");
+                    }
                     GPStimeContext *pGPS = GPStimeInit(ui32uart, ui32baud, ui32pps);
                     assert_(pGPS);
                     DCO._pGPStime = pGPS;
@@ -154,15 +165,21 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
             PushErrorMessage(-1);
 
             return;
-            
+
         } else if(2 == narg)
         {
             if(DCO._pGPStime)
             {
                 GPStimeDestroy(&DCO._pGPStime);
+                printf("\nGPS subsystem is disabled.");
             }
+
+            return;
         }
     }
+
+    //printf("\ncmd=%s", cmd);
+    PushErrorMessage(-13);
 }
 
 void PushErrorMessage(int id)
@@ -179,6 +196,10 @@ void PushErrorMessage(int id)
 
         case -12:
         printf("\nInvalid UART id, should be 0 OR 1");
+        break;
+
+        case -13:
+        printf("\nInvalid command");
         break;
 
         default:

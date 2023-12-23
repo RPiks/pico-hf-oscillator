@@ -76,8 +76,8 @@ GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio)
 
     // Set up our UART with the required speed & assign pins.
     uart_init(uart_id ? uart1 : uart0, uart_baud);
-    gpio_set_function(uart_id ? 8 : 12, GPIO_FUNC_UART);
-    gpio_set_function(uart_id ? 9 : 13, GPIO_FUNC_UART);
+    gpio_set_function(uart_id ? 8 : 0, GPIO_FUNC_UART);
+    gpio_set_function(uart_id ? 9 : 1, GPIO_FUNC_UART);
 
     GPStimeContext *pgt = calloc(1, sizeof(GPStimeContext));
     ASSERT_(pgt);
@@ -105,7 +105,6 @@ GPStimeContext *GPStimeInit(int uart_id, int uart_baud, int pps_gpio)
 
 /// @brief Deinits the GPS module and destroys allocated resources.
 /// @param pp Ptr to Ptr of the Context.
-/// @attention *NOT* implemented completely so far. !FIXME!
 void GPStimeDestroy(GPStimeContext **pp)
 {
     ASSERT_(pp);
@@ -199,6 +198,7 @@ void RAM (GPStimeUartRxIsr)()
         uart_inst_t *puart_id = spGPStimeContext->_uart_id ? uart1 : uart0;
         for(;;uart_is_readable(puart_id))
         {
+            gpio_put(PICO_DEFAULT_LED_PIN, 1);
             uint8_t chr = uart_getc(puart_id);
             spGPStimeContext->_pbytebuff[spGPStimeContext->_u8_ixw++] = chr;
             spGPStimeContext->_is_sentence_ready = ('\n' == chr);

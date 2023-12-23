@@ -85,8 +85,8 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
         printf("  example: SWITCH ON - enable generation.\n");
         printf("-\n");
         printf("  GPSREC OFF/uart_id,pps_pin,baud - enable/disable GPS receiver connection.\n");
-        printf("  example: GPS 0,3,9600 - enable GPS receiver connection with UART0 & PPS on gpio3, 9600 baud port speed.\n");
-        printf("  example: GPS OFF - disable GPS receiver connection.\n");
+        printf("  example: GPSREC 0,3,9600 - enable GPS receiver connection with UART0 & PPS on gpio3, 9600 baud port speed.\n");
+        printf("  example: GPSREC OFF - disable GPS receiver connection.\n");
         return;
     } else if(strstr(cmd, "SETFREQ"))
     {
@@ -149,6 +149,8 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
                     const uint32_t ui32pps = atol(p);
                     p += strlen(p) + 1;
                     const uint32_t ui32baud = atol(p);
+                    //printf("\nbaud=%s\n", p);
+                    sleep_ms(5);
                     if(DCO._pGPStime)
                     {
                         GPStimeDestroy(&DCO._pGPStime);
@@ -178,7 +180,6 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
         }
     }
 
-    //printf("\ncmd=%s", cmd);
     PushErrorMessage(-13);
 }
 
@@ -224,7 +225,6 @@ void PushStatusMessage(void)
         printf("DISABLED");
     }
 
-    //printf("\nGPS subsystem info");
     if(DCO._pGPStime)
     {
         printf("\nGPS UART id %d", DCO._pGPStime->_uart_id);
@@ -234,7 +234,7 @@ void PushStatusMessage(void)
         printf("\nGPS NAV solution flag %u", DCO._pGPStime->_time_data._u8_is_solution_active);
         printf("\nGPS GPRMC receive count %u", DCO._pGPStime->_time_data._u32_nmea_gprmc_count);
         printf("\nGPS PPS period %llu", DCO._pGPStime->_time_data._u64_pps_period_1M);
-        printf("\nGPS frequency shift %lld ppb", DCO._pGPStime->_time_data._i32_freq_shift_ppb);
+        printf("\nGPS frequency correction %lld ppb", DCO._pGPStime->_time_data._i32_freq_shift_ppb);
         printf("\nGPS lat %lld deg1e5", DCO._pGPStime->_time_data._i64_lat_100k);
         printf("\nGPS lon %lld deg1e5", DCO._pGPStime->_time_data._i64_lon_100k);
     }

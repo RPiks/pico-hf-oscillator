@@ -68,6 +68,15 @@ void HFconsoleDestroy(HFconsoleContext **pp)
     }
 }
 
+void HFconsoleClear(HFconsoleContext *pc)
+{
+    if(pc)
+    {
+        memset(pc->buffer, 0, sizeof(pc->buffer));
+        pc->ix = 0;
+    }
+}
+
 int HFconsoleProcess(HFconsoleContext *p, int ms)
 {
     const int ichr = getchar_timeout_us(ms);
@@ -80,8 +89,7 @@ int HFconsoleProcess(HFconsoleContext *p, int ms)
     {
         case 13:
         HFconsoleEmitCommand(p);
-        p->buffer[p->ix] = 0;
-        p->ix = 0;
+        HFconsoleClear(p);
         printf("\n=> ");
         break;
 

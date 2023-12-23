@@ -61,9 +61,6 @@ typedef struct
     int _uart_id;           // UART id (-1 when use Pico USB port)
     int _uart_baudrate;     // UART baud rate (isn't used when uaer id is 0)
 
-    //const char **_ppcommands;
-    //int _commands_count;
-
     void (*_pfwrapper)(char *, int, char *);
 
     char buffer[256];
@@ -76,5 +73,6 @@ void HFconsoleDestroy(HFconsoleContext **pp);
 int HFconsoleProcess(HFconsoleContext *p, int ms);
 int HFconsoleEmitCommand(HFconsoleContext *pc);
 void HFconsoleSetWrapper(HFconsoleContext *pc, void *pfwrapper);
+void HFconsoleClear(HFconsoleContext *pc);
 
 #endif

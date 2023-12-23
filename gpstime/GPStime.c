@@ -111,6 +111,9 @@ void GPStimeDestroy(GPStimeContext **pp)
     ASSERT_(pp);
     ASSERT_(*pp);
 
+    spGPStimeContext = NULL;    /* Detach global context Ptr. */
+    spGPStimeData = NULL;
+
     uart_deinit((*pp)->_uart_id ? uart1 : uart0);
     free(*pp);
     *pp = NULL;

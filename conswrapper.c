@@ -54,9 +54,9 @@
 extern PioDco DCO;
 
 /// @brief Console commands manager. Currently available:
-/// @brief HELP                 - Usage.
-/// @brief SETFREQ [XXXXXXXX]   - Set oscillator output frequency in Hz.
-/// @brief SWITCH [X]           - Switch output to ON or OFF state.
+/// @brief HELP             - Usage.
+/// @brief SETFREQ f        - Set oscillator output frequency in Hz.
+/// @brief SWITCH ON/OFF    - Switch output to ON or OFF state.
 /// @param cmd Ptr to command.
 /// @param narg Argument count.
 /// @param params Command params, full string.
@@ -82,6 +82,10 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
         printf("-\n");
         printf("  SWITCH s - enable/disable generation.\n");
         printf("  example: SWITCH ON - enable generation.\n");
+        printf("-\n");
+        printf("  GPSREC OFF/uart_id,pps_pin,baud - enable/disable GPS receiver connection.\n");
+        printf("  example: GPS 0,3,9600 - enable GPS receiver connection with UART0 & PPS on gpio3, 9600 baud port speed.\n");
+        printf("  example: GPS OFF - disable GPS receiver connection.\n");
     } else if(strstr(cmd, "SETFREQ"))
     {
         if(2 != narg)
@@ -119,6 +123,45 @@ void ConsoleCommandsWrapper(char *cmd, int narg, char *params)
             PioDCOStop(&DCO);
             printf("\nOutput is disabled");
         }
+    } else if(strstr(cmd, "GPSREC"))
+    {
+        if(4 == narg)
+        {
+            char *p = params;
+            const uint32_t ui32uart = atol(p);
+            if(0 != ui32uart && 1 != ui32uart)
+            {
+                PushErrorMessage(-12);
+                return;
+            }
+
+            p += strlen(p) + 1;
+            if(p)
+            {
+                if(strlen(p))
+                {
+                    const uint32_t ui32pps = atol(p);
+                    p += strlen(p) + 1;
+                    const uint32_t ui32baud = atol(p);
+                    GPStimeContext *pGPS = GPStimeInit(ui32uart, ui32baud, ui32pps);
+                    assert_(pGPS);
+                    DCO._pGPStime = pGPS;
+                    printf("\nGPS subsystem is set to UART%lu (%lu baud) & PPS pin%lu", ui32uart, ui32baud, ui32pps);
+                    return;
+                }
+            }
+
+            PushErrorMessage(-1);
+
+            return;
+            
+        } else if(2 == narg)
+        {
+            if(DCO._pGPStime)
+            {
+                GPStimeDestroy(&DCO._pGPStime);
+            }
+        }
     }
 }
 
@@ -132,6 +175,10 @@ void PushErrorMessage(int id)
 
         case -11:
         printf("\nInvalid frequency");
+        break;
+
+        case -12:
+        printf("\nInvalid UART id, should be 0 OR 1");
         break;
 
         default:

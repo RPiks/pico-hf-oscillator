@@ -29,7 +29,6 @@ pico_generate_pio_header(pico-hf-oscillator-test ${CMAKE_CURRENT_LIST_DIR}/piodc
 
 target_sources(pico-hf-oscillator-test PUBLIC
 	      ${CMAKE_CURRENT_LIST_DIR}/lib/assert.c
-#        ${CMAKE_CURRENT_LIST_DIR}/lib/thirdparty/strnstr.c
         ${CMAKE_CURRENT_LIST_DIR}/piodco/piodco.c
         ${CMAKE_CURRENT_LIST_DIR}/gpstime/GPStime.c
         ${CMAKE_CURRENT_LIST_DIR}/debug/logutils.c
@@ -41,7 +40,7 @@ target_sources(pico-hf-oscillator-test PUBLIC
 pico_set_program_name(pico-hf-oscillator-test "pico-hf-oscillator-test")
 pico_set_program_version(pico-hf-oscillator-test "0.9")
 
-pico_enable_stdio_uart(pico-hf-oscillator-test 1)
+pico_enable_stdio_uart(pico-hf-oscillator-test 0)
 pico_enable_stdio_usb(pico-hf-oscillator-test 1)
 
 # Add the standard include files to the build
@@ -63,6 +62,7 @@ target_link_libraries(
         hardware_timer
         hardware_clocks
         hardware_pio
+        hardware_uart
         )
 
 pico_add_extra_outputs(pico-hf-oscillator-test)

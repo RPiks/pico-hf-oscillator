@@ -305,9 +305,9 @@ void RAM (SpinnerGPSreferenceTest)(void)
 
         if(0 == ++tick % 6)
         {
-            stdio_set_driver_enabled(&stdio_uart, false);
+            //stdio_set_driver_enabled(&stdio_uart, false);
             GPStimeDump(&(pGPS->_time_data));
-            stdio_set_driver_enabled(&stdio_uart, true);
+            //stdio_set_driver_enabled(&stdio_uart, true);
         }
     }
 }
